@@ -1,0 +1,59 @@
+# Binaries
+#
+bin/
+dist/
+build/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test Output
+#
+*.out
+*.test
+coverage.txt
+profile.out
+
+# Vendor
+#
+vendor/
+
+# Environment Variables
+#
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDEs
+#
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS Specific
+#
+.DS_Store
+Thumbs.db
+
+# Logs
+#
+*.log
+logs/
+
+# Terraform
+#
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+# Proto generated files (if you want to ignore them, but usually they are committed if generated locally)
+# internal/shared/proto/**/*.pb.go
+
+# Temp
+tmp/
