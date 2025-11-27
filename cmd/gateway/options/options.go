@@ -8,8 +8,8 @@ import (
 )
 
 type Options struct {
-	HTTPAddr     string
-	AuthGRPCAddr string
+	Address     string
+	AuthService string
 }
 
 func NewOptions() *Options {
@@ -18,15 +18,14 @@ func NewOptions() *Options {
 
 func (o *Options) Config() (*gateway.Config, error) {
 	cfg := gateway.NewConfig()
-	cfg.HTTPAddr = o.HTTPAddr
-	cfg.AuthGRPCAddr = o.AuthGRPCAddr
+	cfg.Address = o.Address
+	cfg.AuthService = o.AuthService
 	return cfg, nil
 }
 
 func (o *Options) AddFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVar(&o.HTTPAddr, "http-addr", ":8080", i18n.T("specify the address to listen on"))
-	cmd.Flags().StringVar(&o.AuthGRPCAddr, "auth-grpc-addr", ":8081",
-		i18n.T("authentication service address to listen on"))
+	cmd.Flags().StringVar(&o.Address, "bind-address", ":8080", i18n.T("the address to bind the gateway to"))
+	cmd.Flags().StringVar(&o.AuthService, "auth-service", ":8081", i18n.T("the address of the authentication service"))
 }
 
 func (o *Options) Complete(args []string) {}

@@ -24,13 +24,13 @@ func NewRouter(config *gateway.Config) (*gin.Engine, error) {
 	r.Group("/api/v1/")
 	setupAPIV1(r, config)
 
-	err := r.Run(config.HTTPAddr)
+	err := r.Run(config.Address)
 
 	return r, err
 }
 
 func setupAPIV1(r *gin.Engine, config *gateway.Config) {
-	authClient := auth.NewAuthClient(config.AuthGRPCAddr)
+	authClient := auth.NewAuthClient(config.AuthService)
 	authManager := authmanager.NewAuthManager(authClient)
 	authHandler, _ := authhandler.NewAuthHandler(authManager)
 

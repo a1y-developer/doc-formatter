@@ -14,17 +14,16 @@ type Options interface {
 }
 
 const (
-	MaskString    = "******"
 	DefaultDBPort = 5432
-	DefaultPort   = 3000
+	DefaultPort   = 8081
 )
 
 var (
-	DBHostEnv      = os.Getenv("DB_HOST")
-	DBPortEnv      = os.Getenv("DB_PORT")
-	DBUserEnv      = os.Getenv("DB_USER")
-	DBPassEnv      = os.Getenv("DB_PASS")
-	DBNameEnv      = os.Getenv("DB_NAME")
-	PortEnv        = os.Getenv("PORT")
-	AutoMigrateEnv = os.Getenv("AUTO_MIGRATE")
+	DBHostEnv      = os.Getenv("AUTH_DB_HOST")
+	DBPortEnv      = os.Getenv("AUTH_DB_PORT")
+	DBUserEnv      = os.Getenv("AUTH_DB_USER")
+	DBPassEnv      = os.Getenv("AUTH_DB_PASS")
+	DBNameEnv      = os.Getenv("AUTH_DB_NAME")
+	PortEnv        = os.Getenv("AUTH_PORT")
+	AutoMigrateEnv = os.Getenv("AUTH_AUTO_MIGRATE")
 )

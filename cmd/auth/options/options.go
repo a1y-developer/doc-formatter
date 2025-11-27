@@ -35,7 +35,9 @@ func (o *AuthOptions) Validate() error {
 
 func (o *AuthOptions) Config() (*auth.Config, error) {
 	cfg := auth.NewConfig()
-	o.Database.ApplyTo(&cfg.DB)
+	if err := o.Database.ApplyTo(&cfg.DB); err != nil {
+		return nil, err
+	}
 	cfg.Port = o.Port
 	return cfg, nil
 }
@@ -46,7 +48,7 @@ func (o *AuthOptions) AddFlags(cmd *cobra.Command) {
 		port = DefaultPort
 	}
 	cmd.Flags().IntVarP(&o.Port, "port", "p", port,
-		i18n.T("specify the port to listen on"))
+		i18n.T("specify the port for the auth service to listen on"))
 	o.Database.AddFlags(cmd.Flags())
 }
 
@@ -57,19 +59,17 @@ func (o *AuthOptions) Run() error {
 	}
 
 	userRepository := persistence.NewUserRepository(config.DB)
-
 	userManager := user.NewUserManager(userRepository)
-
-	handler, err := handler.NewHandler(userManager)
+	authHandler, err := handler.NewHandler(userManager)
 	if err != nil {
 		return err
 	}
 
 	lis, _ := net.Listen("tcp", ":"+strconv.Itoa(config.Port))
 	server := grpc.NewServer()
-	authpb.RegisterAuthServiceServer(server, handler)
+	authpb.RegisterAuthServiceServer(server, authHandler)
 
-	logrus.Infof("AuthService running at :%d", config.Port)
+	logrus.Infof("Auth service running at :%d", config.Port)
 
 	err = server.Serve(lis)
 	if err != nil {
