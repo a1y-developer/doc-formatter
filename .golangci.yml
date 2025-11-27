@@ -1,0 +1,55 @@
+version: "2"
+run:
+  go: "1.25"
+linters:
+  default: none
+  enable:
+    - bodyclose
+    - copyloopvar
+    - dogsled
+    - dupl
+    - gocritic
+    - govet
+    - ineffassign
+    - nolintlint
+    - prealloc
+    - predeclared
+    - staticcheck
+    - tparallel
+    - unconvert
+    - unused
+    - whitespace
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - path: (.+)\.go$
+        text: 'G306: Expect WriteFile permissions to be 0600 or less'
+      - path: (.+)\.go$
+        text: 'ST1018: string literal contains Unicode control characters, consider using escape sequences instead'
+      - path: (.+)\.go$
+        text: 'ifElseChain: rewrite if-else to switch statement'
+      - path: (.+)\.go$
+        text: 'S1000: should use for range instead of for { select {} }'
+      - path: (.+)\.go$
+        text: 'SA4004: the surrounding loop is unconditionally terminated'
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofumpt
+  settings:
+    gofumpt:
+      extra-rules: false
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

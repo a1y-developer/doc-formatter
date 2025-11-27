@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "github.com/a1y/doc-formatter/api/grpc/auth/v1;authpb";
+
+// SIGNUP
+message SignupRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message SignupResponse {
+  string user_id = 1;
+}
+
+// LOGIN
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string access_token = 1;
+  int64 expiry_unix = 2;
+}
+
+// AUTH SERVICE DEFINITION
+service AuthService {
+  rpc Signup (SignupRequest) returns (SignupResponse);
+  rpc Login (LoginRequest) returns (LoginResponse);
+}
