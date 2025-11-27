@@ -1,117 +1,265 @@
-basePath: /
+swagger: "2.0"
+info:
+  title: AI Doc Formatter API Gateway
+  version: "1.0"
+  contact: {}
+
+basePath: /api/v1
+schemes:
+  - https
+  - http
+consumes:
+  - application/json
+produces:
+  - application/json
+
+securityDefinitions:
+  BearerAuth:
+    type: apiKey
+    name: Authorization
+    in: header
+    description: >-
+      JWT Authorization header using the Bearer scheme.
+      Example: "Authorization: Bearer {token}"
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Authenticate user and return JWT token
+      description: >-
+        Validates credentials and returns a JWT access token and expiry.
+        This endpoint is public (no Authorization header required).
+      operationId: v1.auth.login
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          description: Login payload
+          required: true
+          schema:
+            $ref: '#/definitions/request.LoginRequest'
+      responses:
+        "200":
+          description: Authentication successful
+          schema:
+            $ref: '#/definitions/response.StandardResponseAuth'
+          examples:
+            application/json:
+              success: true
+              data:
+                access_token: "access_token"
+                expiry_unix: 1700000000
+              error: null
+        "400":
+          description: Bad Request - validation error
+          schema:
+            $ref: '#/definitions/response.StandardResponse'
+          examples:
+            application/json:
+              success: false
+              data: null
+              error:
+                code: "ERR_VALIDATION"
+                message: "Missing required field: password"
+                details:
+                  field: password
+        "401":
+          description: Unauthorized - invalid credentials
+          schema:
+            $ref: '#/definitions/response.StandardResponse'
+          examples:
+            application/json:
+              success: false
+              data: null
+              error:
+                code: "ERR_UNAUTHORIZED"
+                message: "Invalid email or password"
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.StandardResponse'
+          examples:
+            application/json:
+              success: false
+              data: null
+              error:
+                code: "ERR_INTERNAL"
+                message: "An unexpected error occurred"
+
+  /auth/signup:
+    post:
+      tags:
+        - auth
+      summary: Register a new user account
+      description: >-
+        Creates a new user account and returns the created `user_id`.
+        This endpoint is public (no Authorization header required).
+      operationId: v1.auth.signup
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          description: Signup payload
+          required: true
+          schema:
+            $ref: '#/definitions/request.SignupRequest'
+      responses:
+        "201":
+          description: User created
+          schema:
+            $ref: '#/definitions/response.StandardResponseSignup'
+          examples:
+            application/json:
+              success: true
+              data:
+                user_id: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+              error: null
+        "400":
+          description: Bad Request - validation error
+          schema:
+            $ref: '#/definitions/response.StandardResponse'
+          examples:
+            application/json:
+              success: false
+              data: null
+              error:
+                code: "ERR_VALIDATION"
+                message: "Invalid email address"
+        "409":
+          description: Conflict - user already exists
+          schema:
+            $ref: '#/definitions/response.StandardResponse'
+          examples:
+            application/json:
+              success: false
+              data: null
+              error:
+                code: "ERR_CONFLICT"
+                message: "User with this email already exists"
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.StandardResponse'
+          examples:
+            application/json:
+              success: false
+              data: null
+              error:
+                code: "ERR_INTERNAL"
+                message: "An unexpected error occurred"
+
 definitions:
   request.LoginRequest:
+    type: object
+    required:
+      - email
+      - password
     properties:
       email:
         type: string
+        format: email
+        description: "User email address"
+        example: "alice@example.com"
       password:
-        minLength: 6
         type: string
-    required:
-    - email
-    - password
-    type: object
+        minLength: 6
+        description: "User password (minimum 6 characters)"
+        example: "s3cr3tPass"
+
   request.SignupRequest:
+    type: object
+    required:
+      - email
+      - password
     properties:
       email:
         type: string
+        format: email
+        description: "New user email address"
+        example: "newuser@example.com"
       password:
-        minLength: 6
         type: string
-    required:
-    - email
-    - password
-    type: object
+        minLength: 6
+        description: "Password for new user (minimum 6 characters)"
+        example: "newuserPass"
+
   response.LoginResponse:
+    type: object
     properties:
       access_token:
         type: string
+        description: "JWT access token"
+        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
       expiry_unix:
         type: integer
-    type: object
+        format: int64
+        description: "Expiry timestamp (unix seconds)"
+        example: 1700000000
+
   response.SignUpResponse:
+    type: object
     properties:
       user_id:
         type: string
+        format: uuid
+        description: "Created user UUID"
+        example: "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+
+  response.ErrorResponse:
     type: object
-info:
-  contact: {}
-  description: API Gateway for AI Doc Formatter
-  title: AI Doc Formatter API Gateway
-  version: "1.0"
-paths:
-  /api/auth/login:
-    post:
-      consumes:
-      - application/json
-      description: Login user account, return JWT
-      parameters:
-      - description: Login payload
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/request.LoginRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
+    required:
+      - code
+      - message
+    properties:
+      code:
+        type: string
+        description: "Machine-readable error code"
+        example: "ERR_NOT_FOUND"
+      message:
+        type: string
+        description: "Human-readable error message"
+        example: "Resource not found"
+      details:
+        type: object
+        description: "Optional additional error details"
+        additionalProperties:
+          type: string
+
+  response.StandardResponse:
+    type: object
+    required:
+      - success
+    properties:
+      success:
+        type: boolean
+        example: false
+      data:
+        description: "Endpoint-specific payload or null"
+        type: object
+        additionalProperties: true
+      error:
+        $ref: '#/definitions/response.ErrorResponse'
+
+  response.StandardResponseAuth:
+    allOf:
+      - $ref: '#/definitions/response.StandardResponse'
+      - type: object
+        properties:
+          data:
             $ref: '#/definitions/response.LoginResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Login
-      tags:
-      - auth
-  /api/auth/signup:
-    post:
-      consumes:
-      - application/json
-      description: Signup user account
-      parameters:
-      - description: Signup payload
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/request.SignupRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
+
+  response.StandardResponseSignup:
+    allOf:
+      - $ref: '#/definitions/response.StandardResponse'
+      - type: object
+        properties:
+          data:
             $ref: '#/definitions/response.SignUpResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Signup
-      tags:
-      - auth
-swagger: "2.0"
