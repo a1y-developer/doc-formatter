@@ -79,7 +79,6 @@ jobs:
           atlas migrate apply \
             --dir "file://${{ matrix.service.migration_dir }}" \
             --url "postgres://postgres:postgres@localhost:5432/${{ matrix.service.db_name }}?sslmode=disable" \
-            --dev-url "docker://postgres/16/dev" \
             --dry-run
 
       - name: Check migration hash integrity (${{ matrix.service.name }})
