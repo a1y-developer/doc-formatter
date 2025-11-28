@@ -7,16 +7,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Signup godoc
 // @Summary Signup
-// @Description Signup user account
-// @Tags auth
+// @Description Create a new user account
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Param body body request.SignupRequest true "Signup payload"
 // @Success 201 {object} response.SignUpResponse
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /api/auth/signup [post]
+// @Router /api/v1/auth/signup [post]
 func (h *AuthHandler) Signup(c *gin.Context) {
 	var req request.SignupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -35,9 +36,10 @@ func (h *AuthHandler) Signup(c *gin.Context) {
 	})
 }
 
+// Login godoc
 // @Summary Login
-// @Description Login user account, return JWT
-// @Tags auth
+// @Description Login user and return JWT token
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Param body body request.LoginRequest true "Login payload"
@@ -45,7 +47,7 @@ func (h *AuthHandler) Signup(c *gin.Context) {
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /api/auth/login [post]
+// @Router /api/v1/auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req request.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

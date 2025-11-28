@@ -40,11 +40,11 @@ info:
   title: AI Doc Formatter API Gateway
   version: "1.0"
 paths:
-  /api/auth/login:
+  /api/v1/auth/login:
     post:
       consumes:
       - application/json
-      description: Login user account, return JWT
+      description: Login user and return JWT token
       parameters:
       - description: Login payload
         in: body
@@ -79,12 +79,12 @@ paths:
             type: object
       summary: Login
       tags:
-      - auth
-  /api/auth/signup:
+      - Auth
+  /api/v1/auth/signup:
     post:
       consumes:
       - application/json
-      description: Signup user account
+      description: Create a new user account
       parameters:
       - description: Signup payload
         in: body
@@ -113,5 +113,5 @@ paths:
             type: object
       summary: Signup
       tags:
-      - auth
+      - Auth
 swagger: "2.0"

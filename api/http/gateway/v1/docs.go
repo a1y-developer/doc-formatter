@@ -15,9 +15,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/auth/login": {
+        "/api/v1/auth/login": {
             "post": {
-                "description": "Login user account, return JWT",
+                "description": "Login user and return JWT token",
                 "consumes": [
                     "application/json"
                 ],
@@ -25,7 +25,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "Auth"
                 ],
                 "summary": "Login",
                 "parameters": [
@@ -76,9 +76,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/auth/signup": {
+        "/api/v1/auth/signup": {
             "post": {
-                "description": "Signup user account",
+                "description": "Create a new user account",
                 "consumes": [
                     "application/json"
                 ],
@@ -86,7 +86,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "Auth"
                 ],
                 "summary": "Signup",
                 "parameters": [
