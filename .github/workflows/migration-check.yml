@@ -1,7 +1,6 @@
 name: Migration Check
 
 on:
-  workflow_call:
   pull_request:
     branches:
       - main
