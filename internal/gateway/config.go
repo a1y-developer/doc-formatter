@@ -1,8 +1,8 @@
 package gateway
 
 type Config struct {
-	HTTPAddr     string
-	AuthGRPCAddr string
+	Address     string
+	AuthService string
 }
 
 func NewConfig() *Config {

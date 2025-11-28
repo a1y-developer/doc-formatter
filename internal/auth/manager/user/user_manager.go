@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/a1y/doc-formatter/internal/auth/domain/entity"
@@ -34,8 +35,11 @@ func (u *UserManager) LoginUser(ctx context.Context, userEntity *entity.User) (*
 		return nil, 0, err
 	}
 	ok, err := credentials.Compare(userEntity.Password, user.Password)
-	if !ok || err != nil {
+	if err != nil {
 		return nil, 0, err
+	}
+	if !ok {
+		return nil, 0, errors.New("invalid credentials")
 	}
 
 	// TODO: create new method for generate token. Now just for demo
