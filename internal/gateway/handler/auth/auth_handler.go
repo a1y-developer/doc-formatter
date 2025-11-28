@@ -8,16 +8,17 @@ import (
 )
 
 // Signup godoc
-// @Summary Signup
-// @Description Create a new user account
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param body body request.SignupRequest true "Signup payload"
-// @Success 201 {object} response.SignUpResponse
-// @Failure 400 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /api/v1/auth/signup [post]
+//
+//	@Summary		Signup
+//	@Description	Create a new user account
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		request.SignupRequest	true	"Signup payload"
+//	@Success		201		{object}	response.SignUpResponse
+//	@Failure		400		{object}	map[string]string
+//	@Failure		500		{object}	map[string]string
+//	@Router			/api/v1/auth/signup [post]
 func (h *AuthHandler) Signup(c *gin.Context) {
 	var req request.SignupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -37,17 +38,18 @@ func (h *AuthHandler) Signup(c *gin.Context) {
 }
 
 // Login godoc
-// @Summary Login
-// @Description Login user and return JWT token
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param body body request.LoginRequest true "Login payload"
-// @Success 200 {object} response.LoginResponse
-// @Failure 400 {object} map[string]string
-// @Failure 401 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /api/v1/auth/login [post]
+//
+//	@Summary		Login
+//	@Description	Login user and return JWT token
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		request.LoginRequest	true	"Login payload"
+//	@Success		200		{object}	response.LoginResponse
+//	@Failure		400		{object}	map[string]string
+//	@Failure		401		{object}	map[string]string
+//	@Failure		500		{object}	map[string]string
+//	@Router			/api/v1/auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req request.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

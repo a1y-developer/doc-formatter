@@ -9,10 +9,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// @title AI Doc Formatter API Gateway
-// @version 1.0
-// @description API Gateway for Doc Formatter
-// @BasePath /
+// @title			AI Doc Formatter API Gateway
+// @version		1.0
+// @description	API Gateway for Doc Formatter
+// @BasePath		/
 func main() {
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 

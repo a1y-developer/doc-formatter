@@ -29,6 +29,10 @@ lint-fix:  ## Lint, will try to fix errors and modify code
 	@which $(GOLINTER) > /dev/null || (echo "Installing $(GOLINTER)@$(GOLINTER_VERSION) ..."; go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLINTER_VERSION) && echo -e "Installation complete!\n")
 	$(GOLINTER) run --fix $(SOURCE_PATHS)
 
+doc:  ## Start the documentation server with godoc
+	@which godoc > /dev/null || (echo "Installing godoc@latest ..."; go install golang.org/x/tools/cmd/godoc@latest && echo -e "Installation complete!\n")
+	godoc -http=:6060
+
 atlas: ## Install Atlas CLI
 	@which $(ATLAS) > /dev/null || (echo "Installing $(ATLAS) ..."; curl -sSf https://atlasgo.sh | sh && echo -e "Installation complete!\n")
 
@@ -85,4 +89,39 @@ migrate-hash: atlas ## Re-hash service database migration files
 		$(ATLAS) migrate status --env "$${SERVICE_NAME}"; \
 	}
 
-.PHONY: help test cover cover-html lint lint-fix atlas migration migration-status migrate migrate-down migrate-hash
+migrate-validate: atlas ## Validate service database migration files
+	@{ \
+		read -p "Enter service name (e.g. auth): " SERVICE_NAME; \
+		$(ATLAS) migrate validate --env "$${SERVICE_NAME}"; \
+	}
+
+gen-api-spec: ## Generate API Specification with OpenAPI format
+	@echo "Checking swag installation..."
+	@if ! command -v swag >/dev/null 2>&1; then \
+		echo "Installing swag@v1.16.4 ..."; \
+		go install github.com/swaggo/swag/cmd/swag@v1.16.4 || { echo 'Failed to install swag'; exit 1; }; \
+		echo "swag installed successfully!"; \
+	else \
+		echo "swag is already installed"; \
+	fi
+	@echo "Running swag init..."
+	@swag init --parseInternal -g cmd/gateway/main.go -o api/http/gateway/v1/ || { echo 'swag init failed!'; exit 1; }
+
+	@echo "Running swag fmt..."
+	@swag fmt --dir internal/gateway/ || { echo 'swag fmt failed!'; exit 1; }
+	@echo "API Spec generated successfully without errors!"
+
+gen-api-doc: ## Generate API Documentation by API Specification
+	@echo "Checking swagger installation..."
+	@if ! command -v swagger >/dev/null 2>&1; then \
+		echo "Installing swagger@v0.33.1 ..."; \
+		go install github.com/go-swagger/go-swagger/cmd/swagger@v0.33.1 || { echo 'Failed to install swagger'; exit 1; }; \
+		echo "swagger installed successfully!"; \
+	else \
+		echo "swagger is already installed"; \
+	fi
+	@echo "Generating API Markdown Documentation..."
+	@swagger generate markdown -f ./api/http/gateway/v1/swagger.json --output=docs/api.md || { echo 'swagger generate markdown failed!'; exit 1; }
+	@echo "API documentation generated successfully!"
+
+.PHONY: help test cover cover-html lint lint-fix doc atlas migration migration-status migrate migrate-down migrate-hash migrate-validate gen-api-spec gen-api-doc
