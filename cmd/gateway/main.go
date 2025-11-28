@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	app2 "github.com/a1y/doc-formatter/cmd/gateway/app"
+	"github.com/a1y/doc-formatter/cmd/gateway/app"
 	"github.com/sirupsen/logrus"
 )
 
@@ -16,7 +16,7 @@ import (
 func main() {
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	cmd := app2.NewCmdGateway()
+	cmd := app.NewCmdGateway()
 
 	if err := cmd.Execute(); err != nil {
 		logrus.Fatal(err)

@@ -140,4 +140,28 @@ func TestLoginUser(t *testing.T) {
 		assert.Equal(t, int64(0), exp)
 		mockRepo.AssertExpectations(t)
 	})
+
+	t.Run("StoredHashInvalid", func(t *testing.T) {
+		mockRepo := new(MockUserRepository)
+		userManager := NewUserManager(mockRepo)
+		userEntity := &entity.User{
+			Email:    "test@example.com",
+			Password: password,
+		}
+
+		storedUser := &entity.User{
+			ID:       uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+			Email:    "test@example.com",
+			Password: "not-a-valid-hash",
+		}
+
+		mockRepo.On("GetByEmail", mock.Anything, userEntity.Email).Return(storedUser, nil)
+
+		token, exp, err := userManager.LoginUser(context.Background(), userEntity)
+
+		assert.Error(t, err)
+		assert.Nil(t, token)
+		assert.Equal(t, int64(0), exp)
+		mockRepo.AssertExpectations(t)
+	})
 }
