@@ -9,22 +9,15 @@ import (
 )
 
 func NewCmdGateway() *cobra.Command {
-	var (
-		gatewayShort = i18n.T(`Start api gateway.`)
-
-		gatewayLong = i18n.T(`Start api gateway.`)
-
-		gatewayExample = i18n.T(`
-		# Start gateway
-		gateway --http-addr :8080 --auth-grpc-addr localhost:8081`)
-	)
-
 	o := options.NewOptions()
+
 	cmd := &cobra.Command{
-		Use:     "gateway",
-		Short:   gatewayShort,
-		Long:    templates.LongDesc(gatewayLong),
-		Example: templates.Examples(gatewayExample),
+		Use:   "gateway",
+		Short: i18n.T("Start gateway service"),
+		Long: templates.LongDesc(i18n.T(`
+			Start gateway service for doc-formatter.`)),
+		Example: templates.Examples(i18n.T(`
+			gateway --bind-address :8080 --auth-service localhost:8081`)),
 		RunE: func(_ *cobra.Command, args []string) (err error) {
 			defer util.RecoverErr(&err)
 			o.Complete(args)

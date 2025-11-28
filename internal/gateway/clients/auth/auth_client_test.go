@@ -3,12 +3,15 @@ package auth
 import (
 	"context"
 	"errors"
+	"net"
 	"testing"
+	"time"
 
 	authpb "github.com/a1y/doc-formatter/api/grpc/auth/v1"
 	"github.com/a1y/doc-formatter/internal/gateway/domain/response"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 )
 
@@ -126,4 +129,50 @@ func TestAuthClient_Login(t *testing.T) {
 		assert.Equal(t, expectedErr, err)
 		mockClient.AssertExpectations(t)
 	})
+}
+
+type fakeAuthServiceServer struct {
+	authpb.UnimplementedAuthServiceServer
+}
+
+func (f *fakeAuthServiceServer) Signup(ctx context.Context, req *authpb.SignupRequest) (*authpb.SignupResponse, error) {
+	return &authpb.SignupResponse{UserId: "srv-" + req.GetEmail()}, nil
+}
+
+func (f *fakeAuthServiceServer) Login(ctx context.Context, req *authpb.LoginRequest) (*authpb.LoginResponse, error) {
+	return &authpb.LoginResponse{
+		AccessToken: "token-" + req.GetEmail(),
+		ExpiryUnix:  time.Now().Add(time.Minute).Unix(),
+	}, nil
+}
+
+func TestNewAuthClient(t *testing.T) {
+	lis, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+
+	grpcServer := grpc.NewServer()
+	authpb.RegisterAuthServiceServer(grpcServer, &fakeAuthServiceServer{})
+
+	go func() {
+		_ = grpcServer.Serve(lis)
+	}()
+	t.Cleanup(func() {
+		grpcServer.Stop()
+		_ = lis.Close()
+	})
+
+	client := NewAuthClient(lis.Addr().String())
+	require.IsType(t, &authClient{}, client)
+	t.Cleanup(func() {
+		_ = client.(*authClient).conn.Close()
+	})
+
+	resp, err := client.Signup(context.Background(), "user@example.com", "secret")
+	assert.NoError(t, err)
+	assert.Equal(t, "srv-user@example.com", resp.UserID)
+
+	loginResp, err := client.Login(context.Background(), "user@example.com", "secret")
+	assert.NoError(t, err)
+	assert.Contains(t, loginResp.AccessToken, "token-user@example.com")
+	assert.NotZero(t, loginResp.ExpiryUnix)
 }
