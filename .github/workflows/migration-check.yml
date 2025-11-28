@@ -59,26 +59,12 @@ jobs:
 
   MigrationCheck:
     name: Migration Check & Validation - ${{ matrix.service.name }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted,df-runner-01]
     needs: DetectServices
     if: needs.DetectServices.outputs.matrix != '{"service":[]}'
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.DetectServices.outputs.matrix) }}
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -87,17 +73,19 @@ jobs:
 
       - name: Install Atlas CLI
         run: |
-          curl -sSf https://atlasgo.sh | sh
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Install PostgreSQL client
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
+          if ! command -v atlas &> /dev/null; then
+            curl -sSf https://atlasgo.sh | sh
+            echo "$HOME/.local/bin" >> $GITHUB_PATH
+          fi
 
       - name: Create database for service (${{ matrix.service.name }})
+        env:
+          PGPASSWORD: ${{ secrets.PGPASSWORD }}
+          POSTGRES_HOST: ${{ vars.POSTGRES_HOST || 'postgres' }}
         run: |
-          PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c "CREATE DATABASE ${{ matrix.service.db_name }};"
+          # Use POSTGRES_HOST variable (default to 'postgres' service name)
+          psql -h ${POSTGRES_HOST} -p 5432 -U postgres -d postgres -c "DROP DATABASE IF EXISTS ${{ matrix.service.db_name }};"
+          psql -h ${POSTGRES_HOST} -p 5432 -U postgres -d postgres -c "CREATE DATABASE ${{ matrix.service.db_name }};"
 
       # ========== Check Model Changes ==========
       - name: Check if model files changed (${{ matrix.service.name }})
@@ -118,10 +106,13 @@ jobs:
 
       - name: Apply existing migrations (${{ matrix.service.name }})
         if: steps.check_models.outputs.models_changed == 'true'
+        env:
+          DB_PASSWORD: ${{ secrets.PGPASSWORD }}
+          POSTGRES_HOST: ${{ vars.POSTGRES_HOST || 'postgres' }}
         run: |
           atlas migrate apply \
             --dir "file://${{ matrix.service.migration_dir }}" \
-            --url "postgres://postgres:postgres@localhost:5432/${{ matrix.service.db_name }}?sslmode=disable"
+            --url "postgres://postgres:${DB_PASSWORD}@${POSTGRES_HOST}:5432/${{ matrix.service.db_name }}?sslmode=disable"
 
       - name: Compare schemas - Check if migration needed (${{ matrix.service.name }})
         if: steps.check_models.outputs.models_changed == 'true'
@@ -152,14 +143,18 @@ jobs:
             --dev-url "docker://postgres/16/dev"
 
       - name: Test migrations dry-run (${{ matrix.service.name }})
+        env:
+          PGPASSWORD: ${{ secrets.PGPASSWORD }}
+          DB_PASSWORD: ${{ secrets.PGPASSWORD }}
+          POSTGRES_HOST: ${{ vars.POSTGRES_HOST || 'postgres' }}
         run: |
           # Recreate database for clean test
-          PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c "DROP DATABASE IF EXISTS ${{ matrix.service.db_name }};"
-          PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c "CREATE DATABASE ${{ matrix.service.db_name }};"
+          psql -h ${POSTGRES_HOST} -p 5432 -U postgres -d postgres -c "DROP DATABASE IF EXISTS ${{ matrix.service.db_name }};"
+          psql -h ${POSTGRES_HOST} -p 5432 -U postgres -d postgres -c "CREATE DATABASE ${{ matrix.service.db_name }};"
 
           atlas migrate apply \
             --dir "file://${{ matrix.service.migration_dir }}" \
-            --url "postgres://postgres:postgres@localhost:5432/${{ matrix.service.db_name }}?sslmode=disable" \
+            --url "postgres://postgres:${DB_PASSWORD}@${POSTGRES_HOST}:5432/${{ matrix.service.db_name }}?sslmode=disable" \
             --dry-run
 
       - name: Check migration hash integrity (${{ matrix.service.name }})
