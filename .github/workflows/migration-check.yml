@@ -19,8 +19,22 @@ on:
 
 jobs:
   MigrationCheck:
-    name: Database Migration Validation
+    name: Migration Check - ${{ matrix.service }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - name: auth
+            migration_dir: internal/auth/infra/persistence/migrations
+            db_name: auth_db
+          # Add more services here as needed:
+          # - name: payment
+          #   migration_dir: internal/payment/infra/persistence/migrations
+          #   db_name: payment_db
+          # - name: order
+          #   migration_dir: internal/order/infra/persistence/migrations
+          #   db_name: order_db
     services:
       postgres:
         image: postgres:16
@@ -54,31 +68,21 @@ jobs:
           curl -sSf https://atlasgo.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Validate migration integrity (auth service)
+      - name: Validate migration integrity (${{ matrix.service.name }})
         run: |
           atlas migrate validate \
-            --dir "file://internal/auth/infra/persistence/migrations" \
+            --dir "file://${{ matrix.service.migration_dir }}" \
             --dev-url "docker://postgres/16/dev"
 
-      - name: Test migrations against dev database (auth service)
-        env:
-          AUTH_DB_USER: postgres
-          AUTH_DB_PASS: postgres
-          AUTH_DB_NAME: auth_db
-          AUTH_DB_HOST: localhost
+      - name: Test migrations dry-run (${{ matrix.service.name }})
         run: |
-          # Test dry-run of migrations
           atlas migrate apply \
-            --env auth \
+            --dir "file://${{ matrix.service.migration_dir }}" \
+            --url "postgres://postgres:postgres@localhost:5432/${{ matrix.service.db_name }}?sslmode=disable" \
+            --dev-url "docker://postgres/16/dev" \
             --dry-run
 
-      - name: Check migration status (auth service)
-        env:
-          AUTH_DB_USER: postgres
-          AUTH_DB_PASS: postgres
-          AUTH_DB_NAME: auth_db
-          AUTH_DB_HOST: localhost
+      - name: Check migration hash integrity (${{ matrix.service.name }})
         run: |
-          # Verify migration hash integrity
           atlas migrate hash \
-            --env auth
+            --dir "file://${{ matrix.service.migration_dir }}"
