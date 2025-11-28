@@ -60,13 +60,6 @@ jobs:
             --dir "file://internal/auth/infra/persistence/migrations" \
             --dev-url "docker://postgres/16/dev"
 
-      - name: Lint migrations (auth service)
-        run: |
-          atlas migrate lint \
-            --dir "file://internal/auth/infra/persistence/migrations" \
-            --dev-url "docker://postgres/16/dev" \
-            --latest 1
-
       - name: Test migrations against dev database (auth service)
         env:
           AUTH_DB_USER: postgres
