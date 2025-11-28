@@ -6,35 +6,66 @@ on:
     branches:
       - main
     paths:
-      - "internal/**/migrations/**"
+      - "internal/**"
       - "atlas.hcl"
       - ".github/workflows/migration-check.yml"
   push:
     branches:
       - main
     paths:
-      - "internal/**/migrations/**"
+      - "internal/**"
       - "atlas.hcl"
       - ".github/workflows/migration-check.yml"
 
 jobs:
-  MigrationCheck:
-    name: Migration Check - ${{ matrix.service }}
+  DetectServices:
+    name: Detect Services
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Detect services from directory structure
+        id: set-matrix
+        run: |
+          services=()
+
+          # Find all directories with migrations folder
+          for migration_dir in internal/*/infra/persistence/migrations; do
+            if [ -d "$migration_dir" ]; then
+              # Extract service name from path (e.g., internal/auth/infra/persistence/migrations -> auth)
+              service_name=$(echo "$migration_dir" | cut -d'/' -f2)
+              model_dir="internal/$service_name/infra/persistence"
+              loader_dir="internal/$service_name/infra/loader"
+              db_name="${service_name}_db"
+              
+              # Check if loader exists
+              if [ -d "$loader_dir" ]; then
+                services+=("{\"name\":\"$service_name\",\"model_dir\":\"$model_dir\",\"migration_dir\":\"$migration_dir\",\"loader_dir\":\"$loader_dir\",\"db_name\":\"$db_name\"}")
+              fi
+            fi
+          done
+
+          # Create JSON array
+          if [ ${#services[@]} -eq 0 ]; then
+            echo "No services found with migrations"
+            echo "matrix={\"service\":[]}" >> $GITHUB_OUTPUT
+          else
+            json_array=$(printf '%s\n' "${services[@]}" | jq -s -c '{service: .}')
+            echo "matrix=$json_array" >> $GITHUB_OUTPUT
+            echo "Found services: $json_array"
+          fi
+
+  MigrationCheck:
+    name: Migration Check & Validation - ${{ matrix.service.name }}
+    runs-on: ubuntu-latest
+    needs: DetectServices
+    if: needs.DetectServices.outputs.matrix != '{"service":[]}'
     strategy:
       fail-fast: false
-      matrix:
-        service:
-          - name: auth
-            migration_dir: internal/auth/infra/persistence/migrations
-            db_name: auth_db
-          # Add more services here as needed:
-          # - name: payment
-          #   migration_dir: internal/payment/infra/persistence/migrations
-          #   db_name: payment_db
-          # - name: order
-          #   migration_dir: internal/order/infra/persistence/migrations
-          #   db_name: order_db
+      matrix: ${{ fromJson(needs.DetectServices.outputs.matrix) }}
     services:
       postgres:
         image: postgres:16
@@ -68,6 +99,61 @@ jobs:
           curl -sSf https://atlasgo.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Create database for service (${{ matrix.service.name }})
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c "CREATE DATABASE ${{ matrix.service.db_name }};"
+
+      # ========== Check Model Changes ==========
+      - name: Check if model files changed (${{ matrix.service.name }})
+        id: check_models
+        run: |
+          if git diff --name-only origin/main...HEAD | grep -E "${{ matrix.service.model_dir }}/.*_model\.go$"; then
+            echo "models_changed=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Model files have changed for ${{ matrix.service.name }} service"
+          else
+            echo "models_changed=false" >> $GITHUB_OUTPUT
+            echo "✅ No model files changed for ${{ matrix.service.name }} service"
+          fi
+
+      - name: Generate expected schema from models (${{ matrix.service.name }})
+        if: steps.check_models.outputs.models_changed == 'true'
+        run: |
+          go run -mod=mod ./${{ matrix.service.loader_dir }} > /tmp/expected_schema.sql
+
+      - name: Apply existing migrations (${{ matrix.service.name }})
+        if: steps.check_models.outputs.models_changed == 'true'
+        run: |
+          atlas migrate apply \
+            --dir "file://${{ matrix.service.migration_dir }}" \
+            --url "postgres://postgres:postgres@localhost:5432/${{ matrix.service.db_name }}?sslmode=disable"
+
+      - name: Compare schemas - Check if migration needed (${{ matrix.service.name }})
+        if: steps.check_models.outputs.models_changed == 'true'
+        run: |
+          atlas migrate diff \
+            --dir "file://${{ matrix.service.migration_dir }}" \
+            --to "file:///tmp/expected_schema.sql" \
+            --dev-url "docker://postgres/16/dev_check" \
+            --format '{{ sql . "  " }}' > /tmp/pending_changes.sql || true
+
+          if [ -s /tmp/pending_changes.sql ] && [ "$(cat /tmp/pending_changes.sql | grep -v '^[[:space:]]*$' | wc -l)" -gt 0 ]; then
+            echo "❌ ERROR: Model files changed but migrations not updated!"
+            echo ""
+            echo "Detected pending schema changes:"
+            cat /tmp/pending_changes.sql
+            echo ""
+            echo "Please run 'make migration' locally for ${{ matrix.service.name }} service and commit the generated migration files."
+            exit 1
+          else
+            echo "✅ Models and migrations are in sync for ${{ matrix.service.name }} service"
+          fi
+
+      # ========== Validate Migrations ==========
       - name: Validate migration integrity (${{ matrix.service.name }})
         run: |
           atlas migrate validate \
@@ -76,6 +162,10 @@ jobs:
 
       - name: Test migrations dry-run (${{ matrix.service.name }})
         run: |
+          # Recreate database for clean test
+          PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c "DROP DATABASE IF EXISTS ${{ matrix.service.db_name }};"
+          PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c "CREATE DATABASE ${{ matrix.service.db_name }};"
+
           atlas migrate apply \
             --dir "file://${{ matrix.service.migration_dir }}" \
             --url "postgres://postgres:postgres@localhost:5432/${{ matrix.service.db_name }}?sslmode=disable" \
