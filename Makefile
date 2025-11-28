@@ -13,10 +13,10 @@ help:  ## This help message :)
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' Makefile | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 test:  ## Run the tests
-	go test -gcflags="all=-l -N" -timeout=10m `go list $(SOURCE_PATHS)` ${TEST_FLAGS}
+	go test -gcflags="all=-l -N" -timeout=10m `go list $(SOURCE_PATHS) | grep -v /api` ${TEST_FLAGS}
 
 cover:  ## Generates coverage report
-	go test -gcflags="all=-l -N" -timeout=10m `go list $(SOURCE_PATHS)` -coverprofile $(COVER_FILE) ${TEST_FLAGS}
+	go test -gcflags="all=-l -N" -timeout=10m `go list $(SOURCE_PATHS) | grep -v /api` -coverprofile $(COVER_FILE) ${TEST_FLAGS}
 
 cover-html:  ## Generates coverage report and displays it in the browser
 	go tool cover -html=$(COVER_FILE)

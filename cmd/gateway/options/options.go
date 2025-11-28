@@ -40,9 +40,10 @@ func (o *Options) Run() error {
 		return err
 	}
 
-	_, err = route.NewRouter(config)
+	r, err := route.NewRouter(config)
 	if err != nil {
 		return err
 	}
-	return nil
+
+	return r.Run(config.Address)
 }

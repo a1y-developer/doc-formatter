@@ -21,22 +21,27 @@ func NewRouter(config *gateway.Config) (*gin.Engine, error) {
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	r.Group("/api/v1/")
-	setupAPIV1(r, config)
+	v1 := r.Group("/api/v1")
+	if err := setupAPIV1(v1, config); err != nil {
+		return nil, err
+	}
 
-	err := r.Run(config.Address)
-
-	return r, err
+	return r, nil
 }
 
-func setupAPIV1(r *gin.Engine, config *gateway.Config) {
+func setupAPIV1(r gin.IRouter, config *gateway.Config) error {
 	authClient := auth.NewAuthClient(config.AuthService)
 	authManager := authmanager.NewAuthManager(authClient)
-	authHandler, _ := authhandler.NewAuthHandler(authManager)
-
-	r.Group("/auth")
-	{
-		r.POST("/signup", authHandler.Signup)
-		r.POST("/login", authHandler.Login)
+	authHandler, err := authhandler.NewAuthHandler(authManager)
+	if err != nil {
+		return err
 	}
+
+	authGroup := r.Group("/auth")
+	{
+		authGroup.POST("/signup", authHandler.Signup)
+		authGroup.POST("/login", authHandler.Login)
+	}
+
+	return nil
 }
