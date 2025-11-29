@@ -59,6 +59,14 @@ jobs:
       - name: Install Atlas CLI
         run: make atlas
 
+      - name: check ENV
+        run: |
+          echo $AUTH_DB_HOST
+          echo $AUTH_DB_PORT
+          echo $AUTH_DB_NAME
+          echo $AUTH_DB_USER
+          echo $AUTH_DB_SSL_MODE
+
       - name: Compare schemas (${{ matrix.service.name }})
         run: |
           atlas migrate diff --env ${{ matrix.service.name }}
@@ -83,3 +91,27 @@ jobs:
       - name: Check migration apply (${{ matrix.service.name }})
         run: |
           atlas migrate apply --dry-run --env ${{ matrix.service.name }}
+
+  MigrationAfterMerge:
+    name: Migration Check After PR Merge - ${{ matrix.service.name }}
+    needs: DetectServices
+    runs-on: ubuntu-latest
+    if: >
+      github.event.pull_request.merged == true &&
+      needs.DetectServices.outputs.matrix != '{"service":[]}'
+    environment: staging
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.DetectServices.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+  
+      - name: Install Atlas CLI
+        run: make atlas
+  
+      - name: Check migration apply (${{ matrix.service.name }})
+        run: |
+          atlas migrate apply --env ${{ matrix.service.name }}
