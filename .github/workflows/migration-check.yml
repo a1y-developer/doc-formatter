@@ -50,6 +50,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.DetectServices.outputs.matrix) }}
+    env:
+      AUTH_DB_HOST: ${{ secrets.AUTH_DB_HOST }}
+      AUTH_DB_PORT: ${{ secrets.AUTH_DB_PORT }}
+      AUTH_DB_NAME: ${{ secrets.AUTH_DB_NAME }}
+      AUTH_DB_USER: ${{ secrets.AUTH_DB_USER }}
+      AUTH_DB_PASS: ${{ secrets.AUTH_DB_PASS }}
+      AUTH_DB_SSL_MODE: ${{ secrets.AUTH_DB_SSL_MODE }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
