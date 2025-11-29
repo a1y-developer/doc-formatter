@@ -79,3 +79,7 @@ jobs:
       - name: Check migration hash integrity (${{ matrix.service.name }})
         run: |
           atlas migrate hash --env ${{ matrix.service.name }}
+
+      - name: Check migration apply (${{ matrix.service.name }})
+        run: |
+          atlas migrate apply --dry-run --env ${{ matrix.service.name }}
