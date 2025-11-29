@@ -20,6 +20,7 @@ jobs:
   DetectServices:
     name: Detect Services
     runs-on: ubuntu-latest
+    environment: staging
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -42,8 +43,8 @@ jobs:
 
   MigrationCheck:
     name: Migration Check & Validation - ${{ matrix.service.name }}
-    runs-on: [self-hosted, df-runner-01]
     needs: DetectServices
+    runs-on: ubuntu-latest
     if: needs.DetectServices.outputs.matrix != '{"service":[]}'
     environment: staging
     strategy:
