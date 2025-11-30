@@ -8,14 +8,14 @@ on:
     paths:
       - "internal/**"
       - "atlas.hcl"
-      - ".github/workflows/migration-check.yml"
+      - ".github/workflows/migration.yml"
   push:
     branches:
       - main
     paths:
       - "internal/**"
       - "atlas.hcl"
-      - ".github/workflows/migration-check.yml"
+      - ".github/workflows/migration.yml"
 
 jobs:
   DetectServices:
