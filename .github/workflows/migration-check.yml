@@ -21,7 +21,6 @@ jobs:
   DetectServices:
     name: Detect Services
     runs-on: ubuntu-latest
-    environment: staging
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
