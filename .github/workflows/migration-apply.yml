@@ -1,0 +1,89 @@
+name: Migration Apply
+
+on:
+  workflow_run:
+    workflows: ["Migration Check"]
+    types:
+      - completed
+    branches:
+      - main
+
+jobs:
+  DetectServices:
+    name: Detect Services
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          sha: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Detect services from directory structure
+        id: set-matrix
+        run: |
+          names=$(grep -Po '^env\s+"\K[^"]+' atlas.hcl)
+      
+          services=()
+          for name in $names; do
+            services+=("{\"name\":\"$name\"}")
+          done
+      
+          json=$(printf '%s\n' "${services[@]}" | jq -s -c '{service: .}')
+          echo "matrix=$json" >> $GITHUB_OUTPUT
+          echo "Detected services: $json"
+
+  MigrationApply:
+    name: Migration Apply - ${{ matrix.service.name }}
+    needs: DetectServices
+    runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      needs.DetectServices.outputs.matrix != '{"service":[]}'
+    environment: staging
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.DetectServices.outputs.matrix) }}
+    env:
+      AUTH_DB_HOST: ${{ secrets.AUTH_DB_HOST }}
+      AUTH_DB_PORT: ${{ secrets.AUTH_DB_PORT }}
+      AUTH_DB_NAME: ${{ secrets.AUTH_DB_NAME }}
+      AUTH_DB_USER: ${{ secrets.AUTH_DB_USER }}
+      AUTH_DB_PASS: ${{ secrets.AUTH_DB_PASS }}
+      AUTH_DB_SSL_MODE: ${{ secrets.AUTH_DB_SSL_MODE }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          sha: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Install Atlas CLI
+        run: make atlas
+
+      - name: Check migration status (${{ matrix.service.name }})
+        id: check-status
+        run: |
+          status=$(atlas migrate status --env ${{ matrix.service.name }} 2>&1)
+          echo "$status"
+          if echo "$status" | grep -q "Migration Status: PENDING"; then
+            echo "has_pending=true" >> $GITHUB_OUTPUT
+            echo "Found pending migrations, will apply"
+          else
+            echo "has_pending=false" >> $GITHUB_OUTPUT
+            echo "No pending migrations, skipping apply"
+          fi
+
+      - name: Apply migration (${{ matrix.service.name }})
+        if: steps.check-status.outputs.has_pending == 'true'
+        run: |
+          atlas migrate apply --env ${{ matrix.service.name }}
+
+      - name: Skip message (${{ matrix.service.name }})
+        if: steps.check-status.outputs.has_pending == 'false'
+        run: |
+          echo "No pending migrations for ${{ matrix.service.name }}, skipping apply"
+

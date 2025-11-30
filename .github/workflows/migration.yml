@@ -2,7 +2,6 @@ name: Migration Check
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, closed]
     branches:
       - main
     paths:
@@ -89,36 +88,3 @@ jobs:
       - name: Check migration apply (${{ matrix.service.name }})
         run: |
           atlas migrate apply --dry-run --env ${{ matrix.service.name }}
-
-  MigrationApply:
-    name: Migration Apply - ${{ matrix.service.name }}
-    needs: [DetectServices, MigrationCheck]
-    runs-on: ubuntu-latest
-    if: >
-      github.event_name == 'pull_request' &&
-      github.event.action == 'closed' &&
-      github.event.pull_request.merged == true &&
-      needs.DetectServices.outputs.matrix != '{"service":[]}'
-    environment: staging
-    env:
-      AUTH_DB_HOST: ${{ secrets.AUTH_DB_HOST }}
-      AUTH_DB_PORT: ${{ secrets.AUTH_DB_PORT }}
-      AUTH_DB_NAME: ${{ secrets.AUTH_DB_NAME }}
-      AUTH_DB_USER: ${{ secrets.AUTH_DB_USER }}
-      AUTH_DB_PASS: ${{ secrets.AUTH_DB_PASS }}
-      AUTH_DB_SSL_MODE: ${{ secrets.AUTH_DB_SSL_MODE }}
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.DetectServices.outputs.matrix) }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Install Atlas CLI
-        run: make atlas
-
-      - name: Apply migration (${{ matrix.service.name }})
-        run: |
-          atlas migrate apply --env ${{ matrix.service.name }}
