@@ -8,8 +8,8 @@ import (
 )
 
 type Options struct {
-	Address     string
-	AuthService string
+	Address        string
+	AuthService    string
 	LogLevel       string
 	LogFormat      string
 	LogFilePath    string
