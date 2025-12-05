@@ -2,7 +2,12 @@ package user
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/a1y/doc-formatter/internal/auth/domain/entity"
@@ -11,6 +16,32 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
+
+// setupTestPrivateKey generates a test RSA private key (PKCS#8 format) and sets it as environment variable
+func setupTestPrivateKey(t *testing.T) *rsa.PrivateKey {
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatalf("Failed to generate test private key: %v", err)
+	}
+
+	privateKeyBytes, err := x509.MarshalPKCS8PrivateKey(privateKey)
+	if err != nil {
+		t.Fatalf("Failed to marshal PKCS#8 private key: %v", err)
+	}
+
+	privateKeyPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "PRIVATE KEY",
+		Bytes: privateKeyBytes,
+	})
+
+	os.Setenv("AUTH_JWT_PRIVATE_KEY", string(privateKeyPEM))
+	return privateKey
+}
+
+// cleanupTestPrivateKey removes the test environment variable
+func cleanupTestPrivateKey(t *testing.T) {
+	os.Unsetenv("AUTH_JWT_PRIVATE_KEY")
+}
 
 // MockUserRepository is a mock implementation of repository.UserRepository
 type MockUserRepository struct {
@@ -76,6 +107,9 @@ func TestLoginUser(t *testing.T) {
 	hashedPassword, _ := hasher.HashPassword(password, nil)
 
 	t.Run("Success", func(t *testing.T) {
+		setupTestPrivateKey(t)
+		defer cleanupTestPrivateKey(t)
+
 		mockRepo := new(MockUserRepository)
 		userManager := NewUserManager(mockRepo)
 		userEntity := &entity.User{
@@ -100,6 +134,9 @@ func TestLoginUser(t *testing.T) {
 	})
 
 	t.Run("UserNotFound", func(t *testing.T) {
+		setupTestPrivateKey(t)
+		defer cleanupTestPrivateKey(t)
+
 		mockRepo := new(MockUserRepository)
 		userManager := NewUserManager(mockRepo)
 		userEntity := &entity.User{
@@ -118,6 +155,9 @@ func TestLoginUser(t *testing.T) {
 	})
 
 	t.Run("InvalidPassword", func(t *testing.T) {
+		setupTestPrivateKey(t)
+		defer cleanupTestPrivateKey(t)
+
 		mockRepo := new(MockUserRepository)
 		userManager := NewUserManager(mockRepo)
 		userEntity := &entity.User{
@@ -142,6 +182,9 @@ func TestLoginUser(t *testing.T) {
 	})
 
 	t.Run("StoredHashInvalid", func(t *testing.T) {
+		setupTestPrivateKey(t)
+		defer cleanupTestPrivateKey(t)
+
 		mockRepo := new(MockUserRepository)
 		userManager := NewUserManager(mockRepo)
 		userEntity := &entity.User{
