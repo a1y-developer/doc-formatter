@@ -2,6 +2,11 @@ package handler
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
+	"os"
 	"regexp"
 	"testing"
 
@@ -14,6 +19,32 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
+
+// setupTestPrivateKey generates a test RSA private key (PKCS#8 format) and sets it as environment variable
+func setupTestPrivateKey(t *testing.T) *rsa.PrivateKey {
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatalf("Failed to generate test private key: %v", err)
+	}
+
+	privateKeyBytes, err := x509.MarshalPKCS8PrivateKey(privateKey)
+	if err != nil {
+		t.Fatalf("Failed to marshal PKCS#8 private key: %v", err)
+	}
+
+	privateKeyPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "PRIVATE KEY",
+		Bytes: privateKeyBytes,
+	})
+
+	os.Setenv("AUTH_JWT_PRIVATE_KEY", string(privateKeyPEM))
+	return privateKey
+}
+
+// cleanupTestPrivateKey removes the test environment variable
+func cleanupTestPrivateKey(t *testing.T) {
+	os.Unsetenv("AUTH_JWT_PRIVATE_KEY")
+}
 
 func TestHandler_Signup(t *testing.T) {
 	db, mock, err := infra.GetMockDB()
@@ -30,11 +61,11 @@ func TestHandler_Signup(t *testing.T) {
 		Password: "password123",
 	}
 
-	// Expect INSERT
-	// We use AnyArg() for ID and Password because they are generated/hashed
-	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "users"`)).
-		WithArgs(sqlmock.AnyArg(), req.Email, sqlmock.AnyArg(), false).
-		WillReturnResult(sqlmock.NewResult(1, 1))
+	// Expect INSERT - GORM uses Query with RETURNING clause
+	// GORM inserts all fields from UserModel including BaseModel fields
+	mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "users"`)).
+		WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), req.Email, sqlmock.AnyArg(), false).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(uuid.New()))
 	mock.ExpectClose()
 
 	resp, err := h.Signup(ctx, req)
@@ -47,6 +78,9 @@ func TestHandler_Signup(t *testing.T) {
 }
 
 func TestHandler_Login(t *testing.T) {
+	setupTestPrivateKey(t)
+	defer cleanupTestPrivateKey(t)
+
 	db, mock, err := infra.GetMockDB()
 	assert.NoError(t, err)
 
@@ -71,11 +105,12 @@ func TestHandler_Login(t *testing.T) {
 		Password: password,
 	}
 
-	// Expect SELECT
-	rows := sqlmock.NewRows([]string{"id", "email", "password", "is_verified"}).
-		AddRow(userID, email, hashedPassword, true)
+	// Expect SELECT - GORM adds soft delete check (deleted_at IS NULL)
+	// GORM selects all fields from UserModel including BaseModel fields
+	rows := sqlmock.NewRows([]string{"id", "created_at", "updated_at", "deleted_at", "description", "name", "username", "email", "password", "is_verified"}).
+		AddRow(userID.String(), nil, nil, nil, "", "", "", email, hashedPassword, false)
 
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE email = $1 ORDER BY "users"."id" LIMIT $2`)).
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE email = $1 AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT $2`)).
 		WithArgs(email, 1).
 		WillReturnRows(rows)
 	mock.ExpectClose()

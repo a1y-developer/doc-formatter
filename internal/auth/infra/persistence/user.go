@@ -21,13 +21,17 @@ func NewUserRepository(db *gorm.DB) repository.UserRepository {
 }
 
 func (r *userRepository) GetByEmail(ctx context.Context, email string) (*entity.User, error) {
-	var user entity.User
-	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
+	var model UserModel
+	if err := r.db.Where("email = ?", email).First(&model).Error; err != nil {
 		return nil, err
 	}
-	return &user, nil
+	return model.ToEntity()
 }
 
 func (r *userRepository) Create(ctx context.Context, user *entity.User) error {
-	return r.db.Create(user).Error
+	var model UserModel
+	if err := model.FromEntity(user); err != nil {
+		return err
+	}
+	return r.db.Create(&model).Error
 }

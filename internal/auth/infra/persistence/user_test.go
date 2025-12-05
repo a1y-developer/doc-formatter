@@ -22,14 +22,16 @@ func TestUserRepository_Create(t *testing.T) {
 	ctx := context.Background()
 
 	user := &entity.User{
-		ID:       uuid.New(),
-		Email:    "test@example.com",
-		Password: "hashedpassword",
+		ID:         uuid.New(),
+		Email:      "test@example.com",
+		Password:   "hashedpassword",
+		IsVerified: false,
 	}
 
-	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "users"`)).
-		WithArgs(user.ID, user.Email, user.Password, user.IsVerified).
-		WillReturnResult(sqlmock.NewResult(1, 1))
+	// GORM uses Query with RETURNING clause for INSERT
+	mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "users"`)).
+		WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), user.Email, user.Password, user.IsVerified).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(user.ID))
 	mock.ExpectClose()
 
 	err = repo.Create(ctx, user)
@@ -48,15 +50,18 @@ func TestUserRepository_GetByEmail(t *testing.T) {
 
 	email := "existing@example.com"
 	user := &entity.User{
-		ID:       uuid.New(),
-		Email:    email,
-		Password: "hashedpassword",
+		ID:         uuid.New(),
+		Email:      email,
+		Password:   "hashedpassword",
+		IsVerified: false,
 	}
 
-	rows := sqlmock.NewRows([]string{"id", "email", "password", "is_verified"}).
-		AddRow(user.ID, user.Email, user.Password, user.IsVerified)
+	// GORM will select all fields from UserModel including BaseModel fields
+	rows := sqlmock.NewRows([]string{"id", "created_at", "updated_at", "deleted_at", "description", "name", "username", "email", "password", "is_verified"}).
+		AddRow(user.ID.String(), nil, nil, nil, "", "", "", user.Email, user.Password, user.IsVerified)
 
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE email = $1 ORDER BY "users"."id" LIMIT $2`)).
+	// GORM adds soft delete check (deleted_at IS NULL)
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE email = $1 AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT $2`)).
 		WithArgs(email, 1).
 		WillReturnRows(rows)
 
@@ -64,8 +69,9 @@ func TestUserRepository_GetByEmail(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, foundUser)
 	assert.Equal(t, user.Email, foundUser.Email)
+	assert.Equal(t, user.IsVerified, foundUser.IsVerified)
 
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE email = $1 ORDER BY "users"."id" LIMIT $2`)).
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE email = $1 AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT $2`)).
 		WithArgs("nonexistent@example.com", 1).
 		WillReturnError(gorm.ErrRecordNotFound)
 
