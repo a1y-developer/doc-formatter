@@ -45,7 +45,7 @@ func TestLoadRSAPrivateKeyFromFile(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		filePath, expectedKey := setupTestPrivateKeyFile(t)
 
-		key, err := LoadRSAPrivateKeyFromFile(filePath)
+		key, err := loadRSAPrivateKeyFromFile(filePath)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, key)
@@ -54,7 +54,7 @@ func TestLoadRSAPrivateKeyFromFile(t *testing.T) {
 	})
 
 	t.Run("EmptyPath", func(t *testing.T) {
-		key, err := LoadRSAPrivateKeyFromFile("")
+		key, err := loadRSAPrivateKeyFromFile("")
 
 		assert.Error(t, err)
 		assert.Nil(t, key)
@@ -64,7 +64,7 @@ func TestLoadRSAPrivateKeyFromFile(t *testing.T) {
 	t.Run("FileNotFound", func(t *testing.T) {
 		filePath := "/nonexistent/path/to/key.pem"
 
-		key, err := LoadRSAPrivateKeyFromFile(filePath)
+		key, err := loadRSAPrivateKeyFromFile(filePath)
 
 		assert.Error(t, err)
 		assert.Nil(t, key)
@@ -80,7 +80,7 @@ func TestLoadRSAPrivateKeyFromFile(t *testing.T) {
 		require.NoError(t, err)
 		require.NoError(t, tmpFile.Close())
 
-		key, err := LoadRSAPrivateKeyFromFile(tmpFile.Name())
+		key, err := loadRSAPrivateKeyFromFile(tmpFile.Name())
 
 		assert.Error(t, err)
 		assert.Nil(t, key)
@@ -103,7 +103,7 @@ func TestLoadRSAPrivateKeyFromFile(t *testing.T) {
 		require.NoError(t, err)
 		require.NoError(t, tmpFile.Close())
 
-		key, err := LoadRSAPrivateKeyFromFile(tmpFile.Name())
+		key, err := loadRSAPrivateKeyFromFile(tmpFile.Name())
 
 		assert.Error(t, err)
 		assert.Nil(t, key)
@@ -126,7 +126,7 @@ func TestLoadRSAPrivateKeyFromFile(t *testing.T) {
 		require.NoError(t, err)
 		require.NoError(t, tmpFile.Close())
 
-		key, err := LoadRSAPrivateKeyFromFile(tmpFile.Name())
+		key, err := loadRSAPrivateKeyFromFile(tmpFile.Name())
 
 		assert.Error(t, err)
 		assert.Nil(t, key)

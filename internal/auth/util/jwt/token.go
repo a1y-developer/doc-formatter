@@ -13,7 +13,7 @@ import (
 )
 
 // LoadRSAPrivateKeyFromFile loads an RSA private key from a file path specified in environment variable.
-func LoadRSAPrivateKeyFromFile(tokenPath string) (*rsa.PrivateKey, error) {
+func loadRSAPrivateKeyFromFile(tokenPath string) (*rsa.PrivateKey, error) {
 	pemBytes, err := os.ReadFile(tokenPath)
 	if err != nil {
 		return nil, fmt.Errorf("read private key file %q: %w", tokenPath, err)
@@ -45,7 +45,7 @@ func LoadRSAPrivateKeyFromFile(tokenPath string) (*rsa.PrivateKey, error) {
 // Returns the token string, expiration timestamp, and any error that occurred.
 func (t *TokenClaim) GenerateToken(userID uuid.UUID, email string, expirationDuration time.Duration) (string, int64, error) {
 	exp := time.Now().Add(expirationDuration).Unix()
-	privateKey, err := LoadRSAPrivateKeyFromFile(t.TokenPath)
+	privateKey, err := loadRSAPrivateKeyFromFile(t.TokenPath)
 	if err != nil {
 		return "", 0, err
 	}
