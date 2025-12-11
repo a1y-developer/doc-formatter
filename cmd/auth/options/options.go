@@ -2,6 +2,7 @@ package options
 
 import (
 	"net"
+	"os"
 	"strconv"
 
 	authpb "github.com/a1y/doc-formatter/api/grpc/auth/v1"
@@ -16,14 +17,16 @@ import (
 )
 
 type AuthOptions struct {
-	Port     int
-	Database DatabaseOptions
+	Port              int
+	Database          DatabaseOptions
+	JWTPrivateKeyPath string
 }
 
 func NewAuthOptions() *AuthOptions {
 	return &AuthOptions{
-		Port:     DefaultPort,
-		Database: DatabaseOptions{},
+		Port:              DefaultPort,
+		Database:          DatabaseOptions{},
+		JWTPrivateKeyPath: JWTPrivateKeyPathEnv,
 	}
 }
 
@@ -49,10 +52,17 @@ func (o *AuthOptions) AddFlags(cmd *cobra.Command) {
 	}
 	cmd.Flags().IntVarP(&o.Port, "port", "p", port,
 		i18n.T("specify the port for the auth service to listen on"))
+	cmd.Flags().StringVar(&o.JWTPrivateKeyPath, "jwt-private-key-path", JWTPrivateKeyPathEnv,
+		i18n.T("specify the path to the JWT private key file"))
 	o.Database.AddFlags(cmd.Flags())
 }
 
 func (o *AuthOptions) Run() error {
+	// Set JWT private key path environment variable if provided via flag
+	if o.JWTPrivateKeyPath != "" {
+		os.Setenv("AUTH_JWT_PRIVATE_KEY_PATH", o.JWTPrivateKeyPath)
+	}
+
 	config, err := o.Config()
 	if err != nil {
 		return err

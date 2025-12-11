@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// setupTestPrivateKey generates a test RSA private key (PKCS#8 format) and sets it as environment variable
+// setupTestPrivateKey generates a test RSA private key (PKCS#8 format) and creates a temp file
 func setupTestPrivateKey(t *testing.T) *rsa.PrivateKey {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
@@ -37,14 +37,32 @@ func setupTestPrivateKey(t *testing.T) *rsa.PrivateKey {
 		Bytes: privateKeyBytes,
 	})
 
-	os.Setenv("AUTH_JWT_PRIVATE_KEY", string(privateKeyPEM))
+	// Create temporary file for private key
+	tmpFile, err := os.CreateTemp("", "test-private-key-*.pem")
+	if err != nil {
+		t.Fatalf("Failed to create temp file: %v", err)
+	}
+
+	if _, err := tmpFile.Write(privateKeyPEM); err != nil {
+		t.Fatalf("Failed to write private key to temp file: %v", err)
+	}
+
+	if err := tmpFile.Close(); err != nil {
+		t.Fatalf("Failed to close temp file: %v", err)
+	}
+
+	// Set environment variable to point to the temp file
+	os.Setenv("AUTH_JWT_PRIVATE_KEY_PATH", tmpFile.Name())
+	
+	// Store temp file name for cleanup
+	t.Cleanup(func() {
+		os.Remove(tmpFile.Name())
+		os.Unsetenv("AUTH_JWT_PRIVATE_KEY_PATH")
+	})
+
 	return privateKey
 }
 
-// cleanupTestPrivateKey removes the test environment variable
-func cleanupTestPrivateKey(t *testing.T) {
-	os.Unsetenv("AUTH_JWT_PRIVATE_KEY")
-}
 
 func TestHandler_Signup(t *testing.T) {
 	db, mock, err := infra.GetMockDB()
@@ -79,7 +97,6 @@ func TestHandler_Signup(t *testing.T) {
 
 func TestHandler_Login(t *testing.T) {
 	setupTestPrivateKey(t)
-	defer cleanupTestPrivateKey(t)
 
 	db, mock, err := infra.GetMockDB()
 	assert.NoError(t, err)

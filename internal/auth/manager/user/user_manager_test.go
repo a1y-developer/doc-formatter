@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// setupTestPrivateKey generates a test RSA private key (PKCS#8 format) and sets it as environment variable
+// setupTestPrivateKey generates a test RSA private key (PKCS#8 format) and creates a temp file
 func setupTestPrivateKey(t *testing.T) *rsa.PrivateKey {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
@@ -34,14 +34,32 @@ func setupTestPrivateKey(t *testing.T) *rsa.PrivateKey {
 		Bytes: privateKeyBytes,
 	})
 
-	os.Setenv("AUTH_JWT_PRIVATE_KEY", string(privateKeyPEM))
+	// Create temporary file for private key
+	tmpFile, err := os.CreateTemp("", "test-private-key-*.pem")
+	if err != nil {
+		t.Fatalf("Failed to create temp file: %v", err)
+	}
+
+	if _, err := tmpFile.Write(privateKeyPEM); err != nil {
+		t.Fatalf("Failed to write private key to temp file: %v", err)
+	}
+
+	if err := tmpFile.Close(); err != nil {
+		t.Fatalf("Failed to close temp file: %v", err)
+	}
+
+	// Set environment variable to point to the temp file
+	os.Setenv("AUTH_JWT_PRIVATE_KEY_PATH", tmpFile.Name())
+	
+	// Store temp file name for cleanup
+	t.Cleanup(func() {
+		os.Remove(tmpFile.Name())
+		os.Unsetenv("AUTH_JWT_PRIVATE_KEY_PATH")
+	})
+
 	return privateKey
 }
 
-// cleanupTestPrivateKey removes the test environment variable
-func cleanupTestPrivateKey(t *testing.T) {
-	os.Unsetenv("AUTH_JWT_PRIVATE_KEY")
-}
 
 // MockUserRepository is a mock implementation of repository.UserRepository
 type MockUserRepository struct {
@@ -108,7 +126,6 @@ func TestLoginUser(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		setupTestPrivateKey(t)
-		defer cleanupTestPrivateKey(t)
 
 		mockRepo := new(MockUserRepository)
 		userManager := NewUserManager(mockRepo)
@@ -135,7 +152,6 @@ func TestLoginUser(t *testing.T) {
 
 	t.Run("UserNotFound", func(t *testing.T) {
 		setupTestPrivateKey(t)
-		defer cleanupTestPrivateKey(t)
 
 		mockRepo := new(MockUserRepository)
 		userManager := NewUserManager(mockRepo)
@@ -156,7 +172,6 @@ func TestLoginUser(t *testing.T) {
 
 	t.Run("InvalidPassword", func(t *testing.T) {
 		setupTestPrivateKey(t)
-		defer cleanupTestPrivateKey(t)
 
 		mockRepo := new(MockUserRepository)
 		userManager := NewUserManager(mockRepo)
@@ -183,7 +198,6 @@ func TestLoginUser(t *testing.T) {
 
 	t.Run("StoredHashInvalid", func(t *testing.T) {
 		setupTestPrivateKey(t)
-		defer cleanupTestPrivateKey(t)
 
 		mockRepo := new(MockUserRepository)
 		userManager := NewUserManager(mockRepo)
