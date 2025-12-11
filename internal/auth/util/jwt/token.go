@@ -1,4 +1,4 @@
-package token_manager
+package jwt
 
 import (
 	"crypto/rsa"

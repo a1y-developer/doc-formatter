@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/a1y/doc-formatter/internal/auth/domain/entity"
-	"github.com/a1y/doc-formatter/internal/auth/util/token_manager"
+	"github.com/a1y/doc-formatter/internal/auth/util/jwt"
 	"github.com/a1y/doc-formatter/pkg/credentials"
 	"github.com/jinzhu/copier"
 )
@@ -42,7 +42,7 @@ func (u *UserManager) LoginUser(ctx context.Context, userEntity *entity.User) (*
 		return nil, 0, errors.New("invalid credentials")
 	}
 
-	tokenString, exp, err := token_manager.GenerateToken(user.ID, user.Email, 15*time.Minute)
+	tokenString, exp, err := jwt.GenerateToken(user.ID, user.Email, 15*time.Minute)
 	if err != nil {
 		return nil, 0, err
 	}

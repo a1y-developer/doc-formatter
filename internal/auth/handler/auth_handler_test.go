@@ -53,7 +53,7 @@ func setupTestPrivateKey(t *testing.T) *rsa.PrivateKey {
 
 	// Set environment variable to point to the temp file
 	os.Setenv("AUTH_JWT_PRIVATE_KEY_PATH", tmpFile.Name())
-	
+
 	// Store temp file name for cleanup
 	t.Cleanup(func() {
 		os.Remove(tmpFile.Name())
@@ -62,7 +62,6 @@ func setupTestPrivateKey(t *testing.T) *rsa.PrivateKey {
 
 	return privateKey
 }
-
 
 func TestHandler_Signup(t *testing.T) {
 	db, mock, err := infra.GetMockDB()

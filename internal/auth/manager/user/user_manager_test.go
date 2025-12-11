@@ -50,7 +50,7 @@ func setupTestPrivateKey(t *testing.T) *rsa.PrivateKey {
 
 	// Set environment variable to point to the temp file
 	os.Setenv("AUTH_JWT_PRIVATE_KEY_PATH", tmpFile.Name())
-	
+
 	// Store temp file name for cleanup
 	t.Cleanup(func() {
 		os.Remove(tmpFile.Name())
@@ -59,7 +59,6 @@ func setupTestPrivateKey(t *testing.T) *rsa.PrivateKey {
 
 	return privateKey
 }
-
 
 // MockUserRepository is a mock implementation of repository.UserRepository
 type MockUserRepository struct {
