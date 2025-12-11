@@ -53,8 +53,8 @@ func TestLoadRSAPrivateKeyFromFile(t *testing.T) {
 		assert.Equal(t, expectedKey.E, key.E)
 	})
 
-	t.Run("EnvVarNotSet", func(t *testing.T) {
-		key, err := LoadRSAPrivateKeyFromFile("/nonexistent/path/to/key.pem")
+	t.Run("EmptyPath", func(t *testing.T) {
+		key, err := LoadRSAPrivateKeyFromFile("")
 
 		assert.Error(t, err)
 		assert.Nil(t, key)
@@ -141,8 +141,9 @@ func TestGenerateToken(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		filePath, _ := setupTestPrivateKeyFile(t)
+		tokenClaim := TokenClaim{TokenPath: filePath}
 
-		tokenString, exp, err := GenerateToken(userID, email, expirationDuration, filePath)
+		tokenString, exp, err := tokenClaim.GenerateToken(userID, email, expirationDuration)
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, tokenString)
@@ -155,8 +156,9 @@ func TestGenerateToken(t *testing.T) {
 
 	t.Run("LoadKeyError", func(t *testing.T) {
 		filePath := "/nonexistent/path/to/key.pem"
+		tokenClaim := TokenClaim{TokenPath: filePath}
 
-		tokenString, exp, err := GenerateToken(userID, email, expirationDuration, filePath)
+		tokenString, exp, err := tokenClaim.GenerateToken(userID, email, expirationDuration)
 
 		assert.Error(t, err)
 		assert.Empty(t, tokenString)
@@ -165,12 +167,13 @@ func TestGenerateToken(t *testing.T) {
 
 	t.Run("DifferentUsers", func(t *testing.T) {
 		filePath, _ := setupTestPrivateKeyFile(t)
+		tokenClaim := TokenClaim{TokenPath: filePath}
 
 		userID1 := uuid.New()
 		userID2 := uuid.New()
 
-		token1, _, err1 := GenerateToken(userID1, "user1@example.com", expirationDuration, filePath)
-		token2, _, err2 := GenerateToken(userID2, "user2@example.com", expirationDuration, filePath)
+		token1, _, err1 := tokenClaim.GenerateToken(userID1, "user1@example.com", expirationDuration)
+		token2, _, err2 := tokenClaim.GenerateToken(userID2, "user2@example.com", expirationDuration)
 
 		assert.NoError(t, err1)
 		assert.NoError(t, err2)
@@ -181,9 +184,10 @@ func TestGenerateToken(t *testing.T) {
 
 	t.Run("DifferentExpirationDurations", func(t *testing.T) {
 		filePath, _ := setupTestPrivateKeyFile(t)
+		tokenClaim := TokenClaim{TokenPath: filePath}
 
-		token1, exp1, err1 := GenerateToken(userID, email, 5*time.Minute, filePath)
-		token2, exp2, err2 := GenerateToken(userID, email, 30*time.Minute, filePath)
+		token1, exp1, err1 := tokenClaim.GenerateToken(userID, email, 5*time.Minute)
+		token2, exp2, err2 := tokenClaim.GenerateToken(userID, email, 30*time.Minute)
 
 		assert.NoError(t, err1)
 		assert.NoError(t, err2)

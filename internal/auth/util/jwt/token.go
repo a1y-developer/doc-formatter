@@ -43,9 +43,9 @@ func LoadRSAPrivateKeyFromFile(tokenPath string) (*rsa.PrivateKey, error) {
 
 // GenerateToken generates a JWT token for the given user ID and email.
 // Returns the token string, expiration timestamp, and any error that occurred.
-func GenerateToken(userID uuid.UUID, email string, expirationDuration time.Duration, tokenPath string) (string, int64, error) {
+func (t *TokenClaim) GenerateToken(userID uuid.UUID, email string, expirationDuration time.Duration) (string, int64, error) {
 	exp := time.Now().Add(expirationDuration).Unix()
-	privateKey, err := LoadRSAPrivateKeyFromFile(tokenPath)
+	privateKey, err := LoadRSAPrivateKeyFromFile(t.TokenPath)
 	if err != nil {
 		return "", 0, err
 	}

@@ -64,7 +64,7 @@ func (o *AuthOptions) Run() error {
 	}
 
 	userRepository := persistence.NewUserRepository(config.DB)
-	userManager := user.NewUserManager(userRepository, jwtutil.TokenClaim{TokenPath: o.JWTPrivateKeyPath})
+	userManager := user.NewUserManager(userRepository, *jwtutil.NewTokenClaim(o.JWTPrivateKeyPath))
 	authHandler, err := handler.NewHandler(userManager)
 	if err != nil {
 		return err
