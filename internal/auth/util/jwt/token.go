@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// LoadRSAPrivateKeyFromFile loads an RSA private key from a file path specified in environment variable.
+// loadRSAPrivateKeyFromFile loads an RSA private key from a file path specified in environment variable.
 func loadRSAPrivateKeyFromFile(tokenPath string) (*rsa.PrivateKey, error) {
 	pemBytes, err := os.ReadFile(tokenPath)
 	if err != nil {
