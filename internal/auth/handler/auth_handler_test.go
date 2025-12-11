@@ -2,6 +2,11 @@ package handler
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
+	"os"
 	"regexp"
 	"testing"
 
@@ -10,17 +15,60 @@ import (
 	"github.com/a1y/doc-formatter/internal/auth/infra"
 	"github.com/a1y/doc-formatter/internal/auth/infra/persistence"
 	"github.com/a1y/doc-formatter/internal/auth/manager/user"
+	jwtutil "github.com/a1y/doc-formatter/internal/auth/util/jwt"
 	"github.com/a1y/doc-formatter/pkg/credentials"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
+
+// setupTestPrivateKey generates a test RSA private key (PKCS#8 format) and creates a temp file
+// Returns the private key and the file path
+func setupTestPrivateKey(t *testing.T) (*rsa.PrivateKey, string) {
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatalf("Failed to generate test private key: %v", err)
+	}
+
+	privateKeyBytes, err := x509.MarshalPKCS8PrivateKey(privateKey)
+	if err != nil {
+		t.Fatalf("Failed to marshal PKCS#8 private key: %v", err)
+	}
+
+	privateKeyPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "PRIVATE KEY",
+		Bytes: privateKeyBytes,
+	})
+
+	// Create temporary file for private key
+	tmpFile, err := os.CreateTemp("", "test-private-key-*.pem")
+	if err != nil {
+		t.Fatalf("Failed to create temp file: %v", err)
+	}
+
+	filePath := tmpFile.Name()
+
+	if _, err := tmpFile.Write(privateKeyPEM); err != nil {
+		t.Fatalf("Failed to write private key to temp file: %v", err)
+	}
+
+	if err := tmpFile.Close(); err != nil {
+		t.Fatalf("Failed to close temp file: %v", err)
+	}
+
+	// Store temp file name for cleanup
+	t.Cleanup(func() {
+		os.Remove(filePath)
+	})
+
+	return privateKey, filePath
+}
 
 func TestHandler_Signup(t *testing.T) {
 	db, mock, err := infra.GetMockDB()
 	assert.NoError(t, err)
 
 	userRepo := persistence.NewUserRepository(db)
-	userManager := user.NewUserManager(userRepo)
+	userManager := user.NewUserManager(userRepo, jwtutil.TokenClaim{TokenPath: "/tmp/test-private-key.pem"}) // Not used in Signup test
 	h, err := NewHandler(userManager)
 	assert.NoError(t, err)
 
@@ -30,11 +78,11 @@ func TestHandler_Signup(t *testing.T) {
 		Password: "password123",
 	}
 
-	// Expect INSERT
-	// We use AnyArg() for ID and Password because they are generated/hashed
-	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO "users"`)).
-		WithArgs(sqlmock.AnyArg(), req.Email, sqlmock.AnyArg(), false).
-		WillReturnResult(sqlmock.NewResult(1, 1))
+	// Expect INSERT - GORM uses Query with RETURNING clause
+	// GORM inserts all fields from UserModel including BaseModel fields
+	mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "users"`)).
+		WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), req.Email, sqlmock.AnyArg(), false).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(uuid.New()))
 	mock.ExpectClose()
 
 	resp, err := h.Signup(ctx, req)
@@ -47,11 +95,13 @@ func TestHandler_Signup(t *testing.T) {
 }
 
 func TestHandler_Login(t *testing.T) {
+	_, tokenPath := setupTestPrivateKey(t)
+
 	db, mock, err := infra.GetMockDB()
 	assert.NoError(t, err)
 
 	userRepo := persistence.NewUserRepository(db)
-	userManager := user.NewUserManager(userRepo)
+	userManager := user.NewUserManager(userRepo, jwtutil.TokenClaim{TokenPath: tokenPath})
 	h, err := NewHandler(userManager)
 	assert.NoError(t, err)
 
@@ -71,11 +121,12 @@ func TestHandler_Login(t *testing.T) {
 		Password: password,
 	}
 
-	// Expect SELECT
-	rows := sqlmock.NewRows([]string{"id", "email", "password", "is_verified"}).
-		AddRow(userID, email, hashedPassword, true)
+	// Expect SELECT - GORM adds soft delete check (deleted_at IS NULL)
+	// GORM selects all fields from UserModel including BaseModel fields
+	rows := sqlmock.NewRows([]string{"id", "created_at", "updated_at", "deleted_at", "description", "name", "username", "email", "password", "is_verified"}).
+		AddRow(userID.String(), nil, nil, nil, "", "", "", email, hashedPassword, false)
 
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE email = $1 ORDER BY "users"."id" LIMIT $2`)).
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE email = $1 AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT $2`)).
 		WithArgs(email, 1).
 		WillReturnRows(rows)
 	mock.ExpectClose()

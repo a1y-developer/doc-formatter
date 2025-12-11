@@ -9,6 +9,7 @@ import (
 	"github.com/a1y/doc-formatter/internal/auth/handler"
 	"github.com/a1y/doc-formatter/internal/auth/infra/persistence"
 	"github.com/a1y/doc-formatter/internal/auth/manager/user"
+	jwtutil "github.com/a1y/doc-formatter/internal/auth/util/jwt"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
@@ -16,14 +17,16 @@ import (
 )
 
 type AuthOptions struct {
-	Port     int
-	Database DatabaseOptions
+	Port              int
+	Database          DatabaseOptions
+	JWTPrivateKeyPath string
 }
 
 func NewAuthOptions() *AuthOptions {
 	return &AuthOptions{
-		Port:     DefaultPort,
-		Database: DatabaseOptions{},
+		Port:              DefaultPort,
+		Database:          DatabaseOptions{},
+		JWTPrivateKeyPath: JWTPrivateKeyPathEnv,
 	}
 }
 
@@ -49,6 +52,8 @@ func (o *AuthOptions) AddFlags(cmd *cobra.Command) {
 	}
 	cmd.Flags().IntVarP(&o.Port, "port", "p", port,
 		i18n.T("specify the port for the auth service to listen on"))
+	cmd.Flags().StringVar(&o.JWTPrivateKeyPath, "jwt-private-key-path", JWTPrivateKeyPathEnv,
+		i18n.T("specify the path to the JWT private key file"))
 	o.Database.AddFlags(cmd.Flags())
 }
 
@@ -59,7 +64,7 @@ func (o *AuthOptions) Run() error {
 	}
 
 	userRepository := persistence.NewUserRepository(config.DB)
-	userManager := user.NewUserManager(userRepository)
+	userManager := user.NewUserManager(userRepository, *jwtutil.NewTokenClaim(o.JWTPrivateKeyPath))
 	authHandler, err := handler.NewHandler(userManager)
 	if err != nil {
 		return err

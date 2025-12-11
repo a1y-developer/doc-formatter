@@ -7,7 +7,6 @@ import (
 
 	"github.com/a1y/doc-formatter/internal/auth/domain/entity"
 	"github.com/a1y/doc-formatter/pkg/credentials"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/jinzhu/copier"
 )
 
@@ -42,13 +41,10 @@ func (u *UserManager) LoginUser(ctx context.Context, userEntity *entity.User) (*
 		return nil, 0, errors.New("invalid credentials")
 	}
 
-	// TODO: create new method for generate token. Now just for demo
-	exp := time.Now().Add(15 * time.Minute).Unix()
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub":   user.ID,
-		"email": user.Email,
-		"exp":   exp,
-	})
-	str, err := token.SignedString([]byte("super-secret-key"))
-	return &str, exp, err
+	tokenString, exp, err := u.jwtClaims.GenerateToken(user.ID, user.Email, 15*time.Minute)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return &tokenString, exp, nil
 }
