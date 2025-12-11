@@ -44,10 +44,8 @@ func setupTestPrivateKeyFile(t *testing.T) (string, *rsa.PrivateKey) {
 func TestLoadRSAPrivateKeyFromFile(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		filePath, expectedKey := setupTestPrivateKeyFile(t)
-		os.Setenv(jwtPrivateKeyPathEnv, filePath)
-		defer os.Unsetenv(jwtPrivateKeyPathEnv)
 
-		key, err := LoadRSAPrivateKeyFromFile()
+		key, err := LoadRSAPrivateKeyFromFile(filePath)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, key)
@@ -56,21 +54,17 @@ func TestLoadRSAPrivateKeyFromFile(t *testing.T) {
 	})
 
 	t.Run("EnvVarNotSet", func(t *testing.T) {
-		os.Unsetenv(jwtPrivateKeyPathEnv)
-
-		key, err := LoadRSAPrivateKeyFromFile()
+		key, err := LoadRSAPrivateKeyFromFile("/nonexistent/path/to/key.pem")
 
 		assert.Error(t, err)
 		assert.Nil(t, key)
-		assert.Contains(t, err.Error(), jwtPrivateKeyPathEnv)
-		assert.Contains(t, err.Error(), "environment variable is not set")
+		assert.Contains(t, err.Error(), "read private key file")
 	})
 
 	t.Run("FileNotFound", func(t *testing.T) {
-		os.Setenv(jwtPrivateKeyPathEnv, "/nonexistent/path/to/key.pem")
-		defer os.Unsetenv(jwtPrivateKeyPathEnv)
+		filePath := "/nonexistent/path/to/key.pem"
 
-		key, err := LoadRSAPrivateKeyFromFile()
+		key, err := LoadRSAPrivateKeyFromFile(filePath)
 
 		assert.Error(t, err)
 		assert.Nil(t, key)
@@ -86,10 +80,7 @@ func TestLoadRSAPrivateKeyFromFile(t *testing.T) {
 		require.NoError(t, err)
 		require.NoError(t, tmpFile.Close())
 
-		os.Setenv(jwtPrivateKeyPathEnv, tmpFile.Name())
-		defer os.Unsetenv(jwtPrivateKeyPathEnv)
-
-		key, err := LoadRSAPrivateKeyFromFile()
+		key, err := LoadRSAPrivateKeyFromFile(tmpFile.Name())
 
 		assert.Error(t, err)
 		assert.Nil(t, key)
@@ -112,10 +103,7 @@ func TestLoadRSAPrivateKeyFromFile(t *testing.T) {
 		require.NoError(t, err)
 		require.NoError(t, tmpFile.Close())
 
-		os.Setenv(jwtPrivateKeyPathEnv, tmpFile.Name())
-		defer os.Unsetenv(jwtPrivateKeyPathEnv)
-
-		key, err := LoadRSAPrivateKeyFromFile()
+		key, err := LoadRSAPrivateKeyFromFile(tmpFile.Name())
 
 		assert.Error(t, err)
 		assert.Nil(t, key)
@@ -138,10 +126,7 @@ func TestLoadRSAPrivateKeyFromFile(t *testing.T) {
 		require.NoError(t, err)
 		require.NoError(t, tmpFile.Close())
 
-		os.Setenv(jwtPrivateKeyPathEnv, tmpFile.Name())
-		defer os.Unsetenv(jwtPrivateKeyPathEnv)
-
-		key, err := LoadRSAPrivateKeyFromFile()
+		key, err := LoadRSAPrivateKeyFromFile(tmpFile.Name())
 
 		assert.Error(t, err)
 		assert.Nil(t, key)
@@ -156,10 +141,8 @@ func TestGenerateToken(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		filePath, _ := setupTestPrivateKeyFile(t)
-		os.Setenv(jwtPrivateKeyPathEnv, filePath)
-		defer os.Unsetenv(jwtPrivateKeyPathEnv)
 
-		tokenString, exp, err := GenerateToken(userID, email, expirationDuration)
+		tokenString, exp, err := GenerateToken(userID, email, expirationDuration, filePath)
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, tokenString)
@@ -171,9 +154,9 @@ func TestGenerateToken(t *testing.T) {
 	})
 
 	t.Run("LoadKeyError", func(t *testing.T) {
-		os.Unsetenv(jwtPrivateKeyPathEnv)
+		filePath := "/nonexistent/path/to/key.pem"
 
-		tokenString, exp, err := GenerateToken(userID, email, expirationDuration)
+		tokenString, exp, err := GenerateToken(userID, email, expirationDuration, filePath)
 
 		assert.Error(t, err)
 		assert.Empty(t, tokenString)
@@ -182,14 +165,12 @@ func TestGenerateToken(t *testing.T) {
 
 	t.Run("DifferentUsers", func(t *testing.T) {
 		filePath, _ := setupTestPrivateKeyFile(t)
-		os.Setenv(jwtPrivateKeyPathEnv, filePath)
-		defer os.Unsetenv(jwtPrivateKeyPathEnv)
 
 		userID1 := uuid.New()
 		userID2 := uuid.New()
 
-		token1, _, err1 := GenerateToken(userID1, "user1@example.com", expirationDuration)
-		token2, _, err2 := GenerateToken(userID2, "user2@example.com", expirationDuration)
+		token1, _, err1 := GenerateToken(userID1, "user1@example.com", expirationDuration, filePath)
+		token2, _, err2 := GenerateToken(userID2, "user2@example.com", expirationDuration, filePath)
 
 		assert.NoError(t, err1)
 		assert.NoError(t, err2)
@@ -200,11 +181,9 @@ func TestGenerateToken(t *testing.T) {
 
 	t.Run("DifferentExpirationDurations", func(t *testing.T) {
 		filePath, _ := setupTestPrivateKeyFile(t)
-		os.Setenv(jwtPrivateKeyPathEnv, filePath)
-		defer os.Unsetenv(jwtPrivateKeyPathEnv)
 
-		token1, exp1, err1 := GenerateToken(userID, email, 5*time.Minute)
-		token2, exp2, err2 := GenerateToken(userID, email, 30*time.Minute)
+		token1, exp1, err1 := GenerateToken(userID, email, 5*time.Minute, filePath)
+		token2, exp2, err2 := GenerateToken(userID, email, 30*time.Minute, filePath)
 
 		assert.NoError(t, err1)
 		assert.NoError(t, err2)

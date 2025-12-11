@@ -42,7 +42,7 @@ func (u *UserManager) LoginUser(ctx context.Context, userEntity *entity.User) (*
 		return nil, 0, errors.New("invalid credentials")
 	}
 
-	tokenString, exp, err := jwt.GenerateToken(user.ID, user.Email, 15*time.Minute)
+	tokenString, exp, err := jwt.GenerateToken(user.ID, user.Email, 15*time.Minute, u.jwtClaims.TokenPath)
 	if err != nil {
 		return nil, 0, err
 	}

@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/a1y/doc-formatter/internal/auth/domain/entity"
+	jwtutil "github.com/a1y/doc-formatter/internal/auth/util/jwt"
 	"github.com/a1y/doc-formatter/pkg/credentials"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -18,7 +19,8 @@ import (
 )
 
 // setupTestPrivateKey generates a test RSA private key (PKCS#8 format) and creates a temp file
-func setupTestPrivateKey(t *testing.T) *rsa.PrivateKey {
+// Returns the private key and the file path
+func setupTestPrivateKey(t *testing.T) (*rsa.PrivateKey, string) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		t.Fatalf("Failed to generate test private key: %v", err)
@@ -40,6 +42,8 @@ func setupTestPrivateKey(t *testing.T) *rsa.PrivateKey {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
 
+	filePath := tmpFile.Name()
+
 	if _, err := tmpFile.Write(privateKeyPEM); err != nil {
 		t.Fatalf("Failed to write private key to temp file: %v", err)
 	}
@@ -48,16 +52,12 @@ func setupTestPrivateKey(t *testing.T) *rsa.PrivateKey {
 		t.Fatalf("Failed to close temp file: %v", err)
 	}
 
-	// Set environment variable to point to the temp file
-	os.Setenv("AUTH_JWT_PRIVATE_KEY_PATH", tmpFile.Name())
-
 	// Store temp file name for cleanup
 	t.Cleanup(func() {
-		os.Remove(tmpFile.Name())
-		os.Unsetenv("AUTH_JWT_PRIVATE_KEY_PATH")
+		os.Remove(filePath)
 	})
 
-	return privateKey
+	return privateKey, filePath
 }
 
 // MockUserRepository is a mock implementation of repository.UserRepository
@@ -81,7 +81,7 @@ func (m *MockUserRepository) GetByEmail(ctx context.Context, email string) (*ent
 func TestCreateUser(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		mockRepo := new(MockUserRepository)
-		userManager := NewUserManager(mockRepo)
+		userManager := NewUserManager(mockRepo, jwtutil.TokenClaim{TokenPath: "/tmp/test-private-key.pem"})
 		user := &entity.User{
 			Email:    "test@example.com",
 			Password: "password123",
@@ -102,7 +102,7 @@ func TestCreateUser(t *testing.T) {
 
 	t.Run("RepoError", func(t *testing.T) {
 		mockRepo := new(MockUserRepository)
-		userManager := NewUserManager(mockRepo)
+		userManager := NewUserManager(mockRepo, jwtutil.TokenClaim{TokenPath: "/tmp/test-private-key.pem"})
 		user := &entity.User{
 			Email:    "test@example.com",
 			Password: "password123",
@@ -124,10 +124,10 @@ func TestLoginUser(t *testing.T) {
 	hashedPassword, _ := hasher.HashPassword(password, nil)
 
 	t.Run("Success", func(t *testing.T) {
-		setupTestPrivateKey(t)
+		_, tokenPath := setupTestPrivateKey(t)
 
 		mockRepo := new(MockUserRepository)
-		userManager := NewUserManager(mockRepo)
+		userManager := NewUserManager(mockRepo, jwtutil.TokenClaim{TokenPath: tokenPath})
 		userEntity := &entity.User{
 			Email:    "test@example.com",
 			Password: password,
@@ -150,10 +150,10 @@ func TestLoginUser(t *testing.T) {
 	})
 
 	t.Run("UserNotFound", func(t *testing.T) {
-		setupTestPrivateKey(t)
+		_, tokenPath := setupTestPrivateKey(t)
 
 		mockRepo := new(MockUserRepository)
-		userManager := NewUserManager(mockRepo)
+		userManager := NewUserManager(mockRepo, jwtutil.TokenClaim{TokenPath: tokenPath})
 		userEntity := &entity.User{
 			Email:    "test@example.com",
 			Password: password,
@@ -170,10 +170,10 @@ func TestLoginUser(t *testing.T) {
 	})
 
 	t.Run("InvalidPassword", func(t *testing.T) {
-		setupTestPrivateKey(t)
+		_, tokenPath := setupTestPrivateKey(t)
 
 		mockRepo := new(MockUserRepository)
-		userManager := NewUserManager(mockRepo)
+		userManager := NewUserManager(mockRepo, jwtutil.TokenClaim{TokenPath: tokenPath})
 		userEntity := &entity.User{
 			Email:    "test@example.com",
 			Password: "wrongpassword",
@@ -196,10 +196,10 @@ func TestLoginUser(t *testing.T) {
 	})
 
 	t.Run("StoredHashInvalid", func(t *testing.T) {
-		setupTestPrivateKey(t)
+		_, tokenPath := setupTestPrivateKey(t)
 
 		mockRepo := new(MockUserRepository)
-		userManager := NewUserManager(mockRepo)
+		userManager := NewUserManager(mockRepo, jwtutil.TokenClaim{TokenPath: tokenPath})
 		userEntity := &entity.User{
 			Email:    "test@example.com",
 			Password: password,

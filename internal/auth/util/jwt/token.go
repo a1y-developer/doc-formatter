@@ -12,18 +12,11 @@ import (
 	"github.com/google/uuid"
 )
 
-const jwtPrivateKeyPathEnv = "AUTH_JWT_PRIVATE_KEY_PATH"
-
 // LoadRSAPrivateKeyFromFile loads an RSA private key from a file path specified in environment variable.
-func LoadRSAPrivateKeyFromFile() (*rsa.PrivateKey, error) {
-	filePath := os.Getenv(jwtPrivateKeyPathEnv)
-	if filePath == "" {
-		return nil, fmt.Errorf("%s environment variable is not set", jwtPrivateKeyPathEnv)
-	}
-
-	pemBytes, err := os.ReadFile(filePath)
+func LoadRSAPrivateKeyFromFile(tokenPath string) (*rsa.PrivateKey, error) {
+	pemBytes, err := os.ReadFile(tokenPath)
 	if err != nil {
-		return nil, fmt.Errorf("read private key file %q: %w", filePath, err)
+		return nil, fmt.Errorf("read private key file %q: %w", tokenPath, err)
 	}
 
 	block, _ := pem.Decode(pemBytes)
@@ -50,9 +43,9 @@ func LoadRSAPrivateKeyFromFile() (*rsa.PrivateKey, error) {
 
 // GenerateToken generates a JWT token for the given user ID and email.
 // Returns the token string, expiration timestamp, and any error that occurred.
-func GenerateToken(userID uuid.UUID, email string, expirationDuration time.Duration) (string, int64, error) {
+func GenerateToken(userID uuid.UUID, email string, expirationDuration time.Duration, tokenPath string) (string, int64, error) {
 	exp := time.Now().Add(expirationDuration).Unix()
-	privateKey, err := LoadRSAPrivateKeyFromFile()
+	privateKey, err := LoadRSAPrivateKeyFromFile(tokenPath)
 	if err != nil {
 		return "", 0, err
 	}

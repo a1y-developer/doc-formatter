@@ -2,7 +2,6 @@ package options
 
 import (
 	"net"
-	"os"
 	"strconv"
 
 	authpb "github.com/a1y/doc-formatter/api/grpc/auth/v1"
@@ -10,6 +9,7 @@ import (
 	"github.com/a1y/doc-formatter/internal/auth/handler"
 	"github.com/a1y/doc-formatter/internal/auth/infra/persistence"
 	"github.com/a1y/doc-formatter/internal/auth/manager/user"
+	jwtutil "github.com/a1y/doc-formatter/internal/auth/util/jwt"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
@@ -58,18 +58,13 @@ func (o *AuthOptions) AddFlags(cmd *cobra.Command) {
 }
 
 func (o *AuthOptions) Run() error {
-	// Set JWT private key path environment variable if provided via flag
-	if o.JWTPrivateKeyPath != "" {
-		os.Setenv("AUTH_JWT_PRIVATE_KEY_PATH", o.JWTPrivateKeyPath)
-	}
-
 	config, err := o.Config()
 	if err != nil {
 		return err
 	}
 
 	userRepository := persistence.NewUserRepository(config.DB)
-	userManager := user.NewUserManager(userRepository)
+	userManager := user.NewUserManager(userRepository, jwtutil.TokenClaim{TokenPath: o.JWTPrivateKeyPath})
 	authHandler, err := handler.NewHandler(userManager)
 	if err != nil {
 		return err
