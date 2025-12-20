@@ -1,0 +1,29 @@
+name: Check API Spec and Docs
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  check-api-docs:
+    name: Check API Spec and Docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Generate API Spec
+        run: make gen-api-spec
+
+      - name: Generate API Docs
+        run: make gen-api-doc
+
+      - name: Check for changes
+        run: |
+          git diff --exit-code || (echo "Error: API spec or docs are out of date. Please run 'make gen-api-spec' and 'make gen-api-doc' and commit the changes." && exit 1)
