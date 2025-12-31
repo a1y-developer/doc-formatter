@@ -1,6 +1,6 @@
 locals {
-  auth_db_url     = urlescape(getenv("AUTH_DB_URL"))
-  storage_db_url  = urlescape(getenv("STORAGE_DB_URL"))
+  auth_db_url     = getenv("AUTH_DB_URL")
+  storage_db_url  = getenv("STORAGE_DB_URL")
 }
 
 data "external_schema" "auth" {
