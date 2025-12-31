@@ -11,7 +11,7 @@ data "external_schema" "auth" {
 
 env "auth" {
   src = data.external_schema.auth.url
-  url = local.auth_db_url
+  url = "${local.auth_db_url}"
   dev = "docker://postgres/16/auth_db"
   migration { dir = "file://internal/auth/infra/persistence/migrations" }
   format {
@@ -29,7 +29,7 @@ data "external_schema" "storage" {
 
 env "storage" {
   src = data.external_schema.storage.url
-  url = local.storage_db_url
+  url = "${local.storage_db_url}"
   dev = "docker://postgres/16/storage_db"
   migration { dir = "file://internal/storage/infra/persistence/migrations" }
   format {
