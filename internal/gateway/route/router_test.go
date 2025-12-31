@@ -21,7 +21,6 @@ func TestNewRouter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
 
-	// Verify routes are registered
 	routes := r.Routes()
 	expectedRoutes := map[string]string{
 		"/api/v1/auth/signup":    "POST",
@@ -37,6 +36,5 @@ func TestNewRouter(t *testing.T) {
 		}
 	}
 
-	// Ensure all expected routes were found
 	assert.Empty(t, expectedRoutes, "Some expected routes were not found")
 }

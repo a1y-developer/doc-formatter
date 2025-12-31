@@ -17,7 +17,6 @@ func TestOptions_AddFlags(t *testing.T) {
 	cmd := &cobra.Command{}
 	opts.AddFlags(cmd)
 
-	// Check if flags are added
 	assert.NotNil(t, cmd.Flags().Lookup("bind-address"))
 	assert.NotNil(t, cmd.Flags().Lookup("auth-service"))
 }

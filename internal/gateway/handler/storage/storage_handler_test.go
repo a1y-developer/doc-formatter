@@ -14,11 +14,11 @@ import (
 	storagepb "github.com/a1y/doc-formatter/api/grpc/storage/v1"
 	clientstorage "github.com/a1y/doc-formatter/internal/gateway/clients/storage"
 	storagemgr "github.com/a1y/doc-formatter/internal/gateway/manager/storage"
+	"github.com/a1y/doc-formatter/internal/testutil"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
 
-// mockStorageClient is a test double for the gRPC storage client.
 type mockStorageClient struct {
 	clientstorage.StorageClient
 
@@ -43,8 +43,7 @@ func newTestHandler(t *testing.T, mockClient *mockStorageClient) *StorageHandler
 }
 
 func setupRouter(h *StorageHandler) *gin.Engine {
-	gin.SetMode(gin.TestMode)
-	r := gin.New()
+	r := testutil.NewGinEngine()
 	r.POST("/api/v1/storage/upload", h.UploadFile)
 	return r
 }
@@ -76,7 +75,7 @@ func createMultipartRequest(t *testing.T, userID string, includeFile bool) *http
 	return req
 }
 
-func TestStorageHandler_UploadFile_Success(t *testing.T) {
+func TestStorageHandler_UploadFileSuccess(t *testing.T) {
 	mockClient := &mockStorageClient{
 		resp: &storagepb.UploadFileResponse{
 			FileId:   "file-id-123",
@@ -101,7 +100,6 @@ func TestStorageHandler_UploadFile_Success(t *testing.T) {
 	assert.Equal(t, "file-id-123", respBody["file_id"])
 	assert.Equal(t, "test.txt", respBody["file_name"])
 
-	// Verify the request passed down to the storage client.
 	if assert.NotNil(t, mockClient.lastReq) {
 		assert.Equal(t, userID, mockClient.lastReq.GetUserId())
 		assert.Equal(t, "test.txt", mockClient.lastReq.GetFileName())
@@ -110,12 +108,11 @@ func TestStorageHandler_UploadFile_Success(t *testing.T) {
 	}
 }
 
-func TestStorageHandler_UploadFile_BindError(t *testing.T) {
+func TestStorageHandler_UploadFileBindError(t *testing.T) {
 	mockClient := &mockStorageClient{}
 	h := newTestHandler(t, mockClient)
 	router := setupRouter(h)
 
-	// Missing user_id -> ShouldBind fails (binding:"required,uuid4")
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	fileWriter, err := writer.CreateFormFile("file", "test.txt")
@@ -133,12 +130,11 @@ func TestStorageHandler_UploadFile_BindError(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
-func TestStorageHandler_UploadFile_FileMissing(t *testing.T) {
+func TestStorageHandler_UploadFileFileMissing(t *testing.T) {
 	mockClient := &mockStorageClient{}
 	h := newTestHandler(t, mockClient)
 	router := setupRouter(h)
 
-	// user_id present but file field is missing -> FormFile error
 	req := createMultipartRequest(t, "550e8400-e29b-41d4-a716-446655440000", false)
 
 	w := httptest.NewRecorder()
@@ -147,7 +143,7 @@ func TestStorageHandler_UploadFile_FileMissing(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
-func TestStorageHandler_UploadFile_ManagerError(t *testing.T) {
+func TestStorageHandler_UploadFileManagerError(t *testing.T) {
 	mockClient := &mockStorageClient{
 		err: errors.New("upload failed"),
 	}

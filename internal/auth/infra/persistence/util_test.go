@@ -118,7 +118,7 @@ func TestMultiString_GormDBDataType_SQLite(t *testing.T) {
 	var m MultiString
 	ft := &schema.Field{}
 
-	_ = context.Background() // make sure context is imported if needed later
+	_ = context.Background()
 
 	got := m.GormDBDataType(db, ft)
 	assert.Equal(t, "text", got)

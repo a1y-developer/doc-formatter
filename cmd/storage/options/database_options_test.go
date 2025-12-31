@@ -121,7 +121,6 @@ func TestDatabaseOptions_AddFlags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Save original env vars
 			originalDBPortEnv := os.Getenv("STORAGE_DB_PORT")
 			originalAutoMigrateEnv := os.Getenv("STORAGE_AUTO_MIGRATE")
 			defer func() {
@@ -145,7 +144,6 @@ func TestDatabaseOptions_AddFlags(t *testing.T) {
 			fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
 			opts.AddFlags(fs)
 
-			// Check if flags are added
 			assert.NotNil(t, fs.Lookup("db-name"))
 			assert.NotNil(t, fs.Lookup("db-user"))
 			assert.NotNil(t, fs.Lookup("db-pass"))

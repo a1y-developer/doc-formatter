@@ -14,7 +14,6 @@ func TestNewCmdStorage(t *testing.T) {
 	assert.NotEmpty(t, cmd.Short)
 	assert.NotEmpty(t, cmd.Long)
 	assert.NotEmpty(t, cmd.Example)
-
 	assert.NotNil(t, cmd.Flags().Lookup("port"))
 	assert.NotNil(t, cmd.Flags().Lookup("db-host"))
 	assert.NotNil(t, cmd.Flags().Lookup("db-port"))

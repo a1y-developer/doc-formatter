@@ -30,7 +30,7 @@ func TestInitLoggerWithOptions_InvalidLevel(t *testing.T) {
 	logger, err := InitLoggerWithOptions(LoggerOptions{
 		ServiceName: "test-service",
 		Environment: "dev",
-		Level:       "not-a-level", // triggers the fallback path
+		Level:       "not-a-level",
 		Format:      "json",
 	})
 	if err != nil {
@@ -46,10 +46,10 @@ func TestInitLoggerWithOptions_WithFileAndSampling(t *testing.T) {
 
 	logger, err := InitLoggerWithOptions(LoggerOptions{
 		ServiceName: "test-service",
-		Environment: "prod", // used together with Sample to hit sampler path
+		Environment: "prod",
 		Level:       "debug",
-		Format:      "console",         // when env is prod, this still results in JSON encoder
-		FilePath:    "test-logger.log", // non-empty to hit lumberjack configuration
+		Format:      "console",
+		FilePath:    "test-logger.log",
 		MaxSize:     1,
 		MaxBackups:  2,
 		MaxAge:      1,

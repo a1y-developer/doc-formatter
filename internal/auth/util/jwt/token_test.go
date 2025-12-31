@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// setupTestPrivateKeyFile creates a temporary file with a valid RSA private key
 func setupTestPrivateKeyFile(t *testing.T) (string, *rsa.PrivateKey) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
@@ -88,7 +87,6 @@ func TestLoadRSAPrivateKeyFromFile(t *testing.T) {
 	})
 
 	t.Run("WrongPEMType", func(t *testing.T) {
-		// Create a PEM file with wrong type (e.g., CERTIFICATE instead of PRIVATE KEY)
 		tmpFile, err := os.CreateTemp("", "test-wrong-type-*.pem")
 		require.NoError(t, err)
 		defer os.Remove(tmpFile.Name())
@@ -111,7 +109,6 @@ func TestLoadRSAPrivateKeyFromFile(t *testing.T) {
 	})
 
 	t.Run("InvalidKeyFormat", func(t *testing.T) {
-		// Create a PEM file with invalid key data
 		tmpFile, err := os.CreateTemp("", "test-invalid-key-*.pem")
 		require.NoError(t, err)
 		defer os.Remove(tmpFile.Name())
@@ -149,7 +146,6 @@ func TestGenerateToken(t *testing.T) {
 		assert.NotEmpty(t, tokenString)
 		assert.Greater(t, exp, int64(0))
 
-		// Verify expiration is approximately correct (within 1 second)
 		expectedExp := time.Now().Add(expirationDuration).Unix()
 		assert.InDelta(t, expectedExp, exp, 1)
 	})

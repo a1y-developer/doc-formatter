@@ -11,7 +11,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-// mockStorageServiceClient is a lightweight mock that implements storagepb.StorageServiceClient.
 type mockStorageServiceClient struct {
 	lastCtx context.Context
 	lastReq *storagepb.UploadFileRequest
@@ -26,7 +25,7 @@ func (m *mockStorageServiceClient) UploadFile(ctx context.Context, in *storagepb
 	return m.resp, m.err
 }
 
-func TestStorageClient_UploadFile_UsesTimeoutAndForwardsRequest(t *testing.T) {
+func TestStorageClientUploadFileUsesTimeoutAndForwardsRequest(t *testing.T) {
 	mockClient := &mockStorageServiceClient{
 		resp: &storagepb.UploadFileResponse{
 			FileId:   "file-id",
@@ -50,10 +49,8 @@ func TestStorageClient_UploadFile_UsesTimeoutAndForwardsRequest(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, mockClient.resp, resp)
 
-	// Ensure the request was forwarded as-is.
 	assert.Equal(t, req, mockClient.lastReq)
 
-	// Ensure a timeout was applied to the context.
 	deadline, ok := mockClient.lastCtx.Deadline()
 	assert.True(t, ok, "expected context to have a deadline")
 	remaining := time.Until(deadline)
@@ -61,7 +58,6 @@ func TestStorageClient_UploadFile_UsesTimeoutAndForwardsRequest(t *testing.T) {
 	assert.LessOrEqual(t, remaining, 30*time.Second)
 }
 
-// testStorageServer is a minimal in-process implementation of the StorageService.
 type testStorageServer struct {
 	storagepb.UnimplementedStorageServiceServer
 }
@@ -73,8 +69,7 @@ func (s *testStorageServer) UploadFile(ctx context.Context, req *storagepb.Uploa
 	}, nil
 }
 
-func TestNewStorageClient_ConnectsToServerAndUploads(t *testing.T) {
-	// Start an in-process gRPC server.
+func TestNewStorageClientConnectsToServerAndUploads(t *testing.T) {
 	lis, err := net.Listen("tcp", "127.0.0.1:0")
 	assert.NoError(t, err)
 
@@ -87,7 +82,6 @@ func TestNewStorageClient_ConnectsToServerAndUploads(t *testing.T) {
 		_ = lis.Close()
 	})
 
-	// Create the storage client pointing at the in-process server.
 	client := NewStorageClient(lis.Addr().String())
 
 	ctx := context.Background()

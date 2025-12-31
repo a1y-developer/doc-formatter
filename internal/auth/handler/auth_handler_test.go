@@ -21,8 +21,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// setupTestPrivateKey generates a test RSA private key (PKCS#8 format) and creates a temp file
-// Returns the private key and the file path
 func setupTestPrivateKey(t *testing.T) (*rsa.PrivateKey, string) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
@@ -39,7 +37,6 @@ func setupTestPrivateKey(t *testing.T) (*rsa.PrivateKey, string) {
 		Bytes: privateKeyBytes,
 	})
 
-	// Create temporary file for private key
 	tmpFile, err := os.CreateTemp("", "test-private-key-*.pem")
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
@@ -55,7 +52,6 @@ func setupTestPrivateKey(t *testing.T) (*rsa.PrivateKey, string) {
 		t.Fatalf("Failed to close temp file: %v", err)
 	}
 
-	// Store temp file name for cleanup
 	t.Cleanup(func() {
 		os.Remove(filePath)
 	})
@@ -68,7 +64,7 @@ func TestHandler_Signup(t *testing.T) {
 	assert.NoError(t, err)
 
 	userRepo := persistence.NewUserRepository(db)
-	userManager := user.NewUserManager(userRepo, jwtutil.TokenClaim{TokenPath: "/tmp/test-private-key.pem"}) // Not used in Signup test
+	userManager := user.NewUserManager(userRepo, jwtutil.TokenClaim{TokenPath: "/tmp/test-private-key.pem"})
 	h, err := NewHandler(userManager)
 	assert.NoError(t, err)
 
@@ -78,10 +74,7 @@ func TestHandler_Signup(t *testing.T) {
 		Password: "password123",
 	}
 
-	// GORM wraps Create in an explicit transaction
 	mock.ExpectBegin()
-	// Expect INSERT - GORM uses Query with RETURNING clause inside the transaction
-	// GORM inserts all fields from UserModel including BaseModel fields
 	mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "users"`)).
 		WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), req.Email, sqlmock.AnyArg(), false).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(uuid.New()))
@@ -111,7 +104,6 @@ func TestHandler_Login(t *testing.T) {
 	ctx := context.Background()
 	password := "password123"
 
-	// Pre-hash password
 	hasher := credentials.NewDefaultArgon2idHash()
 	hashedPassword, err := hasher.HashPassword(password, nil)
 	assert.NoError(t, err)
@@ -124,8 +116,6 @@ func TestHandler_Login(t *testing.T) {
 		Password: password,
 	}
 
-	// Expect SELECT - GORM adds soft delete check (deleted_at IS NULL)
-	// GORM selects all fields from UserModel including BaseModel fields
 	rows := sqlmock.NewRows([]string{"id", "created_at", "updated_at", "deleted_at", "description", "name", "username", "email", "password", "is_verified"}).
 		AddRow(userID.String(), nil, nil, nil, "", "", "", email, hashedPassword, false)
 

@@ -27,9 +27,7 @@ func TestUserRepository_Create(t *testing.T) {
 		IsVerified: false,
 	}
 
-	// GORM wraps Create in an explicit transaction
 	mock.ExpectBegin()
-	// GORM uses Query with RETURNING clause for INSERT inside the transaction
 	mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "users"`)).
 		WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), user.Email, user.Password, user.IsVerified).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(user.ID))
@@ -58,11 +56,9 @@ func TestUserRepository_GetByEmail(t *testing.T) {
 		IsVerified: false,
 	}
 
-	// GORM will select all fields from UserModel including BaseModel fields
 	rows := sqlmock.NewRows([]string{"id", "created_at", "updated_at", "deleted_at", "description", "name", "username", "email", "password", "is_verified"}).
 		AddRow(user.ID.String(), nil, nil, nil, "", "", "", user.Email, user.Password, user.IsVerified)
 
-	// GORM adds soft delete check (deleted_at IS NULL)
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE email = $1 AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT $2`)).
 		WithArgs(email, 1).
 		WillReturnRows(rows)

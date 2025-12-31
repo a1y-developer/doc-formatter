@@ -99,7 +99,6 @@ func TestStorageOptions_AddFlags(t *testing.T) {
 	cmd := &cobra.Command{}
 	opts.AddFlags(cmd)
 
-	// Check if port flag is added.
 	portFlag := cmd.Flags().Lookup("port")
 	assert.NotNil(t, portFlag)
 	assert.Equal(t, "p", portFlag.Shorthand)

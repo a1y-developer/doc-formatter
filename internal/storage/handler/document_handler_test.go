@@ -35,8 +35,6 @@ func TestHandler_UploadFile_InvalidUserID_Panics(t *testing.T) {
 }
 
 func TestHandler_UploadFile_NilDocumentManager_Panics(t *testing.T) {
-	// documentManager is nil; a valid request will cause a panic when attempting
-	// to call UploadDocument on the nil manager.
 	h := &Handler{}
 
 	req := &storagepb.UploadFileRequest{
