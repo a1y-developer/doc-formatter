@@ -16,6 +16,8 @@ func NewGinEngine() *gin.Engine {
 	return gin.Default()
 }
 
+// NewJSONRequest builds an HTTP request with a JSON body and the appropriate
+// Content-Type header. It is safe to use in table-driven tests.
 func NewJSONRequest(t *testing.T, method, path string, body any) *http.Request {
 	t.Helper()
 

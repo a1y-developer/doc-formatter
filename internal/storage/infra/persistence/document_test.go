@@ -10,6 +10,8 @@ import (
 	testpersistence "github.com/a1y/doc-formatter/pkg/persistence"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -145,4 +147,43 @@ func TestDocumentRepository_Delete(t *testing.T) {
 	mock.ExpectClose()
 	testpersistence.CloseDB(t, db)
 	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestDocumentRepository_SQLiteIntegration(t *testing.T) {
+	t.Parallel()
+
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	require.NoError(t, err)
+
+	require.NoError(t, AutoMigrate(db))
+
+	repo := NewDocumentRepository(db)
+	ctx := context.Background()
+
+	userID := uuid.New()
+	doc := &entity.Document{
+		UserID:    userID,
+		FileName:  "test.txt",
+		FileSize:  123,
+		ObjectKey: userID.String() + "/test.txt",
+	}
+
+	// Create
+	require.NoError(t, repo.Create(ctx, doc))
+	require.NotEqual(t, uuid.Nil, doc.ID)
+
+	// List by user
+	docs, err := repo.ListByUserID(ctx, userID)
+	require.NoError(t, err)
+	require.Len(t, docs, 1)
+
+	// Get by ID
+	fetched, err := repo.GetByID(ctx, docs[0].ID)
+	require.NoError(t, err)
+	require.Equal(t, doc.ID, fetched.ID)
+	require.Equal(t, doc.UserID, fetched.UserID)
+	require.Equal(t, doc.FileName, fetched.FileName)
+
+	// Delete
+	require.NoError(t, repo.Delete(ctx, fetched.ID))
 }
