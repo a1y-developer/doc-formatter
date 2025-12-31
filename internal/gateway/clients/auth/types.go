@@ -26,6 +26,7 @@ func NewAuthClient(addr string) AuthClient {
 	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("cannot connect to AuthService: %v", err)
+		return nil
 	}
 	c := authpb.NewAuthServiceClient(conn)
 	return &authClient{

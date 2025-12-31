@@ -1,10 +1,6 @@
 locals {
-  auth_db_user = urlescape(getenv("AUTH_DB_USER"))
-  auth_db_pass = urlescape(getenv("AUTH_DB_PASS"))
-  auth_db_name = urlescape(getenv("AUTH_DB_NAME"))
-  auth_db_host = urlescape(getenv("AUTH_DB_HOST"))
-  auth_db_port = urlescape(getenv("AUTH_DB_PORT"))
-  auth_db_ssl_mode = urlescape(getenv("AUTH_DB_SSL_MODE"))
+  auth_db_url     = urlescape(getenv("AUTH_DB_URL"))
+  storage_db_url  = urlescape(getenv("STORAGE_DB_URL"))
 }
 
 data "external_schema" "auth" {
@@ -15,9 +11,27 @@ data "external_schema" "auth" {
 
 env "auth" {
   src = data.external_schema.auth.url
-  url = "postgres://${local.auth_db_user}:${local.auth_db_pass}@${local.auth_db_host}:${local.auth_db_port}/${local.auth_db_name}?sslmode=${local.auth_db_ssl_mode}"
+  url = local.auth_db_url
   dev = "docker://postgres/16/auth_db"
   migration { dir = "file://internal/auth/infra/persistence/migrations" }
+  format {
+    migrate {
+      diff = "{{ sql . \"  \" }}"
+    }
+  }
+}
+
+data "external_schema" "storage" {
+  program = [
+    "go", "run", "-mod=mod", "./internal/storage/infra/loader",
+  ]
+}
+
+env "storage" {
+  src = data.external_schema.storage.url
+  url = local.storage_db_url
+  dev = "docker://postgres/16/storage_db"
+  migration { dir = "file://internal/storage/infra/persistence/migrations" }
   format {
     migrate {
       diff = "{{ sql . \"  \" }}"

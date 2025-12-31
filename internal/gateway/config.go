@@ -1,9 +1,10 @@
 package gateway
 
 type Config struct {
-	Address     string
-	AuthService string
-	Logging     LoggingConfig
+	Address        string
+	AuthService    string
+	StorageService string
+	Logging        LoggingConfig
 }
 
 // LoggingConfig holds structured logging configuration for the gateway.

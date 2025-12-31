@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package storage;
+
+option go_package = "github.com/a1y/doc-formatter/api/grpc/storage/v1;storagepb";
+
+// UPLOAD FILE
+message UploadFileRequest {
+  string user_id = 1;
+  string file_name = 2;
+  int64 file_size = 3;
+  bytes content = 4;
+}
+
+message UploadFileResponse {
+  string file_id = 1;
+  string file_name = 2;
+}
+
+// STORAGE SERVICE DEFINITION
+service StorageService {
+  rpc UploadFile (UploadFileRequest) returns (UploadFileResponse);
+}

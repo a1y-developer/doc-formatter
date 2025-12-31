@@ -12,11 +12,11 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	authpb "github.com/a1y/doc-formatter/api/grpc/auth/v1"
-	"github.com/a1y/doc-formatter/internal/auth/infra"
 	"github.com/a1y/doc-formatter/internal/auth/infra/persistence"
 	"github.com/a1y/doc-formatter/internal/auth/manager/user"
 	jwtutil "github.com/a1y/doc-formatter/internal/auth/util/jwt"
 	"github.com/a1y/doc-formatter/pkg/credentials"
+	testpersistence "github.com/a1y/doc-formatter/pkg/persistence"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
@@ -64,7 +64,7 @@ func setupTestPrivateKey(t *testing.T) (*rsa.PrivateKey, string) {
 }
 
 func TestHandler_Signup(t *testing.T) {
-	db, mock, err := infra.GetMockDB()
+	db, mock, err := testpersistence.GetMockDB()
 	assert.NoError(t, err)
 
 	userRepo := persistence.NewUserRepository(db)
@@ -78,11 +78,14 @@ func TestHandler_Signup(t *testing.T) {
 		Password: "password123",
 	}
 
-	// Expect INSERT - GORM uses Query with RETURNING clause
+	// GORM wraps Create in an explicit transaction
+	mock.ExpectBegin()
+	// Expect INSERT - GORM uses Query with RETURNING clause inside the transaction
 	// GORM inserts all fields from UserModel including BaseModel fields
 	mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "users"`)).
 		WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), req.Email, sqlmock.AnyArg(), false).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(uuid.New()))
+	mock.ExpectCommit()
 	mock.ExpectClose()
 
 	resp, err := h.Signup(ctx, req)
@@ -90,14 +93,14 @@ func TestHandler_Signup(t *testing.T) {
 	assert.NotNil(t, resp)
 	assert.NotEmpty(t, resp.UserId)
 
-	infra.CloseDB(t, db)
+	testpersistence.CloseDB(t, db)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestHandler_Login(t *testing.T) {
 	_, tokenPath := setupTestPrivateKey(t)
 
-	db, mock, err := infra.GetMockDB()
+	db, mock, err := testpersistence.GetMockDB()
 	assert.NoError(t, err)
 
 	userRepo := persistence.NewUserRepository(db)
@@ -137,6 +140,6 @@ func TestHandler_Login(t *testing.T) {
 	assert.NotEmpty(t, resp.AccessToken)
 	assert.NotZero(t, resp.ExpiryUnix)
 
-	infra.CloseDB(t, db)
+	testpersistence.CloseDB(t, db)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }

@@ -12,8 +12,9 @@ func TestNewRouter(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	config := &gateway.Config{
-		Address:     ":8080",
-		AuthService: ":8081",
+		Address:        ":8080",
+		AuthService:    ":8081",
+		StorageService: ":8082",
 	}
 
 	r, err := NewRouter(config)
@@ -23,9 +24,10 @@ func TestNewRouter(t *testing.T) {
 	// Verify routes are registered
 	routes := r.Routes()
 	expectedRoutes := map[string]string{
-		"/api/v1/auth/signup": "POST",
-		"/api/v1/auth/login":  "POST",
-		"/swagger/*any":       "GET",
+		"/api/v1/auth/signup":    "POST",
+		"/api/v1/auth/login":     "POST",
+		"/api/v1/storage/upload": "POST",
+		"/swagger/*any":          "GET",
 	}
 
 	for _, route := range routes {

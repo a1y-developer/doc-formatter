@@ -10,6 +10,7 @@ import (
 type Options struct {
 	Address        string
 	AuthService    string
+	StorageService string
 	LogLevel       string
 	LogFormat      string
 	LogFilePath    string
@@ -29,6 +30,7 @@ func (o *Options) Config() (*gateway.Config, error) {
 	cfg := gateway.NewConfig()
 	cfg.Address = o.Address
 	cfg.AuthService = o.AuthService
+	cfg.StorageService = o.StorageService
 	cfg.Logging.Level = o.LogLevel
 	cfg.Logging.Format = o.LogFormat
 	cfg.Logging.FilePath = o.LogFilePath
@@ -44,6 +46,7 @@ func (o *Options) Config() (*gateway.Config, error) {
 func (o *Options) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&o.Address, "bind-address", ":8080", i18n.T("the address to bind the gateway to"))
 	cmd.Flags().StringVar(&o.AuthService, "auth-service", ":8081", i18n.T("the address of the authentication service"))
+	cmd.Flags().StringVar(&o.StorageService, "storage-service", ":8082", i18n.T("the address of the storage service"))
 
 	cmd.Flags().StringVar(&o.LogLevel, "log-level", "info", i18n.T("log level: debug, info, warn, error"))
 	cmd.Flags().StringVar(&o.LogFormat, "log-format", "json", i18n.T("log format: json or console"))
