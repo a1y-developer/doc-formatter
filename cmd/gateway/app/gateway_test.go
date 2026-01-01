@@ -124,6 +124,15 @@ func TestNewCmdGateway_RunE(t *testing.T) {
 		authService, _ := cmd.Flags().GetString("auth-service")
 		assert.Equal(t, "localhost:9091", authService)
 	})
+
+	t.Run("RunE executes and returns error for invalid address", func(t *testing.T) {
+		cmd := NewCmdGateway()
+		err := cmd.Flags().Set("bind-address", "invalid-address")
+		require.NoError(t, err)
+
+		runErr := cmd.RunE(cmd, nil)
+		require.Error(t, runErr, "RunE should return an error for invalid address")
+	})
 }
 
 func TestNewCmdGateway_Isolation(t *testing.T) {
