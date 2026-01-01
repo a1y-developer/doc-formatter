@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/a1y/doc-formatter/cmd/auth/util"
-	"github.com/a1y/doc-formatter/internal/auth/infra"
+	"github.com/a1y/doc-formatter/internal/auth/infra/persistence"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
@@ -51,7 +51,7 @@ func (o *DatabaseOptions) ApplyTo(db **gorm.DB) error {
 	*db = d
 
 	if *db != nil && o.AutoMigrate {
-		if err := infra.AutoMigrate(*db); err != nil {
+		if err := persistence.AutoMigrate(*db); err != nil {
 			logrus.Fatalf("Failed to auto migrate: %+v", err)
 		}
 	}

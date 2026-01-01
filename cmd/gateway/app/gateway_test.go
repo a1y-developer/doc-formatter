@@ -118,12 +118,20 @@ func TestNewCmdGateway_RunE(t *testing.T) {
 		err = cmd.Flags().Set("auth-service", "localhost:9091")
 		require.NoError(t, err)
 
-		// Verify flags are set before calling RunE
 		bindAddr, _ := cmd.Flags().GetString("bind-address")
 		assert.Equal(t, ":9090", bindAddr)
 
 		authService, _ := cmd.Flags().GetString("auth-service")
 		assert.Equal(t, "localhost:9091", authService)
+	})
+
+	t.Run("RunE executes and returns error for invalid address", func(t *testing.T) {
+		cmd := NewCmdGateway()
+		err := cmd.Flags().Set("bind-address", "invalid-address")
+		require.NoError(t, err)
+
+		runErr := cmd.RunE(cmd, nil)
+		require.Error(t, runErr, "RunE should return an error for invalid address")
 	})
 }
 
@@ -135,14 +143,12 @@ func TestNewCmdGateway_Isolation(t *testing.T) {
 		require.NotNil(t, cmd1)
 		require.NotNil(t, cmd2)
 
-		// Modify flags on one instance
 		err := cmd1.Flags().Set("bind-address", ":1111")
 		require.NoError(t, err)
 
 		err = cmd2.Flags().Set("bind-address", ":2222")
 		require.NoError(t, err)
 
-		// Verify they are independent
 		addr1, _ := cmd1.Flags().GetString("bind-address")
 		addr2, _ := cmd2.Flags().GetString("bind-address")
 		assert.NotEqual(t, addr1, addr2, "command instances should be independent")

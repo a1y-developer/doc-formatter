@@ -18,8 +18,6 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// setupTestPrivateKey generates a test RSA private key (PKCS#8 format) and creates a temp file
-// Returns the private key and the file path
 func setupTestPrivateKey(t *testing.T) (*rsa.PrivateKey, string) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
@@ -36,7 +34,6 @@ func setupTestPrivateKey(t *testing.T) (*rsa.PrivateKey, string) {
 		Bytes: privateKeyBytes,
 	})
 
-	// Create temporary file for private key
 	tmpFile, err := os.CreateTemp("", "test-private-key-*.pem")
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
@@ -52,7 +49,6 @@ func setupTestPrivateKey(t *testing.T) (*rsa.PrivateKey, string) {
 		t.Fatalf("Failed to close temp file: %v", err)
 	}
 
-	// Store temp file name for cleanup
 	t.Cleanup(func() {
 		os.Remove(filePath)
 	})
@@ -60,7 +56,6 @@ func setupTestPrivateKey(t *testing.T) (*rsa.PrivateKey, string) {
 	return privateKey, filePath
 }
 
-// MockUserRepository is a mock implementation of repository.UserRepository
 type MockUserRepository struct {
 	mock.Mock
 }
@@ -88,7 +83,7 @@ func TestCreateUser(t *testing.T) {
 		}
 
 		mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(u *entity.User) bool {
-			return u.Email == user.Email && u.Password != "password123" // Password should be hashed
+			return u.Email == user.Email && u.Password != "password123"
 		})).Return(nil)
 
 		createdUser, err := userManager.CreateUser(context.Background(), user)

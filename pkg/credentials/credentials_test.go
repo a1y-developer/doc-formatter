@@ -66,8 +66,6 @@ func TestCompare(t *testing.T) {
 	})
 
 	t.Run("IncompatibleVersion", func(t *testing.T) {
-		// Construct a hash with an incompatible version
-		// $argon2id$v=18$m=65536,t=1,p=4$salt$hash
 		incompatibleHash := "$argon2id$v=18$m=65536,t=1,p=4$c2FsdA$aGFzaA"
 		match, err := Compare(password, incompatibleHash)
 		assert.Error(t, err)

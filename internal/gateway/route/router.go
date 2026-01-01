@@ -5,8 +5,11 @@ import (
 
 	"github.com/a1y/doc-formatter/internal/gateway"
 	"github.com/a1y/doc-formatter/internal/gateway/clients/auth"
+	storageclient "github.com/a1y/doc-formatter/internal/gateway/clients/storage"
 	authhandler "github.com/a1y/doc-formatter/internal/gateway/handler/auth"
+	storagehandler "github.com/a1y/doc-formatter/internal/gateway/handler/storage"
 	authmanager "github.com/a1y/doc-formatter/internal/gateway/manager/auth"
+	storagemanager "github.com/a1y/doc-formatter/internal/gateway/manager/storage"
 	"github.com/a1y/doc-formatter/internal/gateway/middleware"
 	logutil "github.com/a1y/doc-formatter/internal/gateway/util/logging"
 	"github.com/gin-contrib/cors"
@@ -59,14 +62,21 @@ func setupAPIV1(r gin.IRouter, config *gateway.Config) error {
 
 	// Setup clients
 	authClient := auth.NewAuthClient(config.AuthService)
+	storageClient := storageclient.NewStorageClient(config.StorageService)
 
 	// Setup managers
 	authManager := authmanager.NewAuthManager(authClient)
+	storageManager := storagemanager.NewStorageManager(storageClient)
 
 	// Setup handlers
 	authHandler, err := authhandler.NewAuthHandler(authManager)
 	if err != nil {
 		logger.Error("Failed to create auth handler...", zap.Error(err))
+		return err
+	}
+	storageHandler, err := storagehandler.NewStorageHandler(storageManager)
+	if err != nil {
+		logger.Error("Failed to create storage handler...", zap.Error(err))
 		return err
 	}
 
@@ -75,6 +85,11 @@ func setupAPIV1(r gin.IRouter, config *gateway.Config) error {
 	{
 		authGroup.POST("/signup", authHandler.Signup)
 		authGroup.POST("/login", authHandler.Login)
+	}
+
+	storageGroup := r.Group("/storage")
+	{
+		storageGroup.POST("/upload", storageHandler.UploadFile)
 	}
 
 	return nil

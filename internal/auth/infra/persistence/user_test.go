@@ -1,4 +1,4 @@
-package persistence_test
+package persistence
 
 import (
 	"context"
@@ -7,18 +7,17 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/a1y/doc-formatter/internal/auth/domain/entity"
-	"github.com/a1y/doc-formatter/internal/auth/infra"
-	"github.com/a1y/doc-formatter/internal/auth/infra/persistence"
+	testpersistence "github.com/a1y/doc-formatter/pkg/persistence"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
 
 func TestUserRepository_Create(t *testing.T) {
-	db, mock, err := infra.GetMockDB()
+	db, mock, err := testpersistence.GetMockDB()
 	assert.NoError(t, err)
 
-	repo := persistence.NewUserRepository(db)
+	repo := NewUserRepository(db)
 	ctx := context.Background()
 
 	user := &entity.User{
@@ -28,24 +27,25 @@ func TestUserRepository_Create(t *testing.T) {
 		IsVerified: false,
 	}
 
-	// GORM uses Query with RETURNING clause for INSERT
+	mock.ExpectBegin()
 	mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "users"`)).
 		WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), user.Email, user.Password, user.IsVerified).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(user.ID))
+	mock.ExpectCommit()
 	mock.ExpectClose()
 
 	err = repo.Create(ctx, user)
 	assert.NoError(t, err)
 
-	infra.CloseDB(t, db)
+	testpersistence.CloseDB(t, db)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestUserRepository_GetByEmail(t *testing.T) {
-	db, mock, err := infra.GetMockDB()
+	db, mock, err := testpersistence.GetMockDB()
 	assert.NoError(t, err)
 
-	repo := persistence.NewUserRepository(db)
+	repo := NewUserRepository(db)
 	ctx := context.Background()
 
 	email := "existing@example.com"
@@ -56,11 +56,9 @@ func TestUserRepository_GetByEmail(t *testing.T) {
 		IsVerified: false,
 	}
 
-	// GORM will select all fields from UserModel including BaseModel fields
 	rows := sqlmock.NewRows([]string{"id", "created_at", "updated_at", "deleted_at", "description", "name", "username", "email", "password", "is_verified"}).
 		AddRow(user.ID.String(), nil, nil, nil, "", "", "", user.Email, user.Password, user.IsVerified)
 
-	// GORM adds soft delete check (deleted_at IS NULL)
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE email = $1 AND "users"."deleted_at" IS NULL ORDER BY "users"."id" LIMIT $2`)).
 		WithArgs(email, 1).
 		WillReturnRows(rows)
@@ -80,7 +78,7 @@ func TestUserRepository_GetByEmail(t *testing.T) {
 	assert.Equal(t, gorm.ErrRecordNotFound, err)
 
 	mock.ExpectClose()
-	infra.CloseDB(t, db)
+	testpersistence.CloseDB(t, db)
 
 	assert.NoError(t, mock.ExpectationsWereMet())
 }

@@ -28,10 +28,23 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*entity.
 	return model.ToEntity()
 }
 
-func (r *userRepository) Create(ctx context.Context, user *entity.User) error {
-	var model UserModel
-	if err := model.FromEntity(user); err != nil {
+func (r *userRepository) Create(ctx context.Context, dataEntity *entity.User) error {
+	err := dataEntity.Validate()
+	if err != nil {
 		return err
 	}
-	return r.db.Create(&model).Error
+	var dataModel UserModel
+	if err := dataModel.FromEntity(dataEntity); err != nil {
+		return err
+	}
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		err = tx.WithContext(ctx).Create(&dataModel).Error
+		if err != nil {
+			return err
+		}
+
+		dataEntity.ID = dataModel.ID
+
+		return nil
+	})
 }

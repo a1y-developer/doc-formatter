@@ -121,7 +121,6 @@ func TestDatabaseOptions_AddFlags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Save original env vars
 			originalDBPortEnv := os.Getenv("AUTH_DB_PORT")
 			originalAutoMigrateEnv := os.Getenv("AUTH_AUTO_MIGRATE")
 			defer func() {
@@ -145,7 +144,6 @@ func TestDatabaseOptions_AddFlags(t *testing.T) {
 			fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
 			opts.AddFlags(fs)
 
-			// Check if flags are added
 			assert.NotNil(t, fs.Lookup("db-name"))
 			assert.NotNil(t, fs.Lookup("db-user"))
 			assert.NotNil(t, fs.Lookup("db-pass"))
@@ -222,10 +220,8 @@ func TestDatabaseOptions_ApplyTo(t *testing.T) {
 			wantErr:     true,
 		},
 		{
-			name: "ApplyTo with invalid options",
-			opts: &DatabaseOptions{
-				// Missing required fields
-			},
+			name:        "ApplyTo with invalid options",
+			opts:        &DatabaseOptions{},
 			autoMigrate: false,
 			wantErr:     true,
 		},

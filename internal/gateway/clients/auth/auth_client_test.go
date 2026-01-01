@@ -15,7 +15,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-// MockAuthServiceClient is a mock of authpb.AuthServiceClient
 type MockAuthServiceClient struct {
 	mock.Mock
 }

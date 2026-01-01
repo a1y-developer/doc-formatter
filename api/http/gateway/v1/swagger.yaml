@@ -34,6 +34,13 @@ definitions:
       user_id:
         type: string
     type: object
+  response.UploadFileResponse:
+    properties:
+      file_id:
+        type: string
+      file_name:
+        type: string
+    type: object
 info:
   contact: {}
   description: API Gateway for AI Doc Formatter
@@ -114,4 +121,42 @@ paths:
       summary: Signup
       tags:
       - Auth
+  /api/v1/storage/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a file for a user
+      parameters:
+      - description: User ID (UUID)
+        in: formData
+        name: user_id
+        required: true
+        type: string
+      - description: File to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.UploadFileResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Upload file
+      tags:
+      - Storage
 swagger: "2.0"

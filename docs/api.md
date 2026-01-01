@@ -22,6 +22,7 @@ API Gateway for AI Doc Formatter
 
 ### Consumes
   * application/json
+  * multipart/form-data
 
 ### Produces
   * application/json
@@ -34,6 +35,14 @@ API Gateway for AI Doc Formatter
 |---------|---------|--------|---------|
 | POST | /api/v1/auth/login | [post API v1 auth login](#post-api-v1-auth-login) | Login |
 | POST | /api/v1/auth/signup | [post API v1 auth signup](#post-api-v1-auth-signup) | Signup |
+  
+
+
+###  storage
+
+| Method  | URI     | Name   | Summary |
+|---------|---------|--------|---------|
+| POST | /api/v1/storage/upload | [post API v1 storage upload](#post-api-v1-storage-upload) | Upload file |
   
 
 
@@ -163,6 +172,64 @@ Status: Internal Server Error
 
 map of string
 
+### <span id="post-api-v1-storage-upload"></span> Upload file (*PostAPIV1StorageUpload*)
+
+```
+POST /api/v1/storage/upload
+```
+
+Upload a file for a user
+
+#### Consumes
+  * multipart/form-data
+
+#### Produces
+  * application/json
+
+#### Parameters
+
+| Name | Source | Type | Go type | Separator | Required | Default | Description |
+|------|--------|------|---------|-----------| :------: |---------|-------------|
+| file | `formData` | file | `io.ReadCloser` |  | ✓ |  | File to upload |
+| user_id | `formData` | string | `string` |  | ✓ |  | User ID (UUID) |
+
+#### All responses
+| Code | Status | Description | Has headers | Schema |
+|------|--------|-------------|:-----------:|--------|
+| [201](#post-api-v1-storage-upload-201) | Created | Created |  | [schema](#post-api-v1-storage-upload-201-schema) |
+| [400](#post-api-v1-storage-upload-400) | Bad Request | Bad Request |  | [schema](#post-api-v1-storage-upload-400-schema) |
+| [500](#post-api-v1-storage-upload-500) | Internal Server Error | Internal Server Error |  | [schema](#post-api-v1-storage-upload-500-schema) |
+
+#### Responses
+
+
+##### <span id="post-api-v1-storage-upload-201"></span> 201 - Created
+Status: Created
+
+###### <span id="post-api-v1-storage-upload-201-schema"></span> Schema
+   
+  
+
+[ResponseUploadFileResponse](#response-upload-file-response)
+
+##### <span id="post-api-v1-storage-upload-400"></span> 400 - Bad Request
+Status: Bad Request
+
+###### <span id="post-api-v1-storage-upload-400-schema"></span> Schema
+   
+  
+
+map of string
+
+##### <span id="post-api-v1-storage-upload-500"></span> 500 - Internal Server Error
+Status: Internal Server Error
+
+###### <span id="post-api-v1-storage-upload-500-schema"></span> Schema
+   
+  
+
+map of string
+
 ## Models
 
 ### <span id="request-login-request"></span> request.LoginRequest
@@ -225,5 +292,21 @@ map of string
 | Name | Type | Go type | Required | Default | Description | Example |
 |------|------|---------|:--------:| ------- |-------------|---------|
 | user_id | string| `string` |  | |  |  |
+
+
+
+### <span id="response-upload-file-response"></span> response.UploadFileResponse
+
+
+  
+
+
+
+**Properties**
+
+| Name | Type | Go type | Required | Default | Description | Example |
+|------|------|---------|:--------:| ------- |-------------|---------|
+| file_id | string| `string` |  | |  |  |
+| file_name | string| `string` |  | |  |  |
 
 

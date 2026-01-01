@@ -1,21 +1,16 @@
-package infra
+package persistence
 
 import (
 	"database/sql/driver"
 	"fmt"
 	"strings"
-	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/a1y/doc-formatter/internal/auth/infra/persistence"
-	"github.com/stretchr/testify/require"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 )
 
 func AutoMigrate(db *gorm.DB) error {
-	if err := db.AutoMigrate(&persistence.UserModel{}); err != nil {
+	if err := db.AutoMigrate(&UserModel{}); err != nil {
 		return err
 	}
 	return nil
@@ -60,34 +55,4 @@ func (s MultiString) GormDBDataType(db *gorm.DB, field *schema.Field) string {
 		return "text"
 	}
 	return ""
-}
-
-// Create a mock database connection
-func GetMockDB() (*gorm.DB, sqlmock.Sqlmock, error) {
-	// Create a sqlMock of sql.DB.
-	fakeDB, sqlMock, err := sqlmock.New()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// common execution for orm
-
-	// Create the gorm database connection with fake db
-	fakeGDB, err := gorm.Open(postgres.New(postgres.Config{
-		Conn: fakeDB,
-	}), &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return fakeGDB, sqlMock, nil
-}
-
-// Close the gorm database connection
-func CloseDB(t *testing.T, gdb *gorm.DB) {
-	db, err := gdb.DB()
-	require.NoError(t, err)
-	require.NoError(t, db.Close())
 }

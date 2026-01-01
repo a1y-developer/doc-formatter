@@ -12,12 +12,12 @@ import (
 	"github.com/a1y/doc-formatter/internal/gateway/domain/request"
 	"github.com/a1y/doc-formatter/internal/gateway/domain/response"
 	manager "github.com/a1y/doc-formatter/internal/gateway/manager/auth"
+	"github.com/a1y/doc-formatter/internal/testutil"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-// MockAuthClient is a mock of AuthClient interface
 type MockAuthClient struct {
 	mock.Mock
 }
@@ -39,8 +39,7 @@ func (m *MockAuthClient) Login(ctx context.Context, email, password string) (*re
 }
 
 func setupRouter() (*gin.Engine, *MockAuthClient) {
-	gin.SetMode(gin.TestMode)
-	r := gin.Default()
+	r := testutil.NewGinEngine()
 	mockClient := new(MockAuthClient)
 	authManager := manager.NewAuthManager(mockClient)
 	authHandler, _ := NewAuthHandler(authManager)
@@ -58,13 +57,12 @@ func TestAuthHandler_Signup(t *testing.T) {
 			Email:    "test@example.com",
 			Password: "password123",
 		}
-		jsonBody, _ := json.Marshal(reqBody)
 
 		mockClient.On("Signup", mock.Anything, reqBody.Email, reqBody.Password).
 			Return(&response.SignUpResponse{UserID: "123"}, nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/api/auth/signup", bytes.NewBuffer(jsonBody))
+		req := testutil.NewJSONRequest(t, http.MethodPost, "/api/auth/signup", reqBody)
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusCreated, w.Code)
@@ -77,7 +75,7 @@ func TestAuthHandler_Signup(t *testing.T) {
 		mockClient.AssertExpectations(t)
 	})
 
-	t.Run("BadRequest_InvalidJSON", func(t *testing.T) {
+	t.Run("BadRequestInvalidJSON", func(t *testing.T) {
 		r, _ := setupRouter()
 
 		w := httptest.NewRecorder()
@@ -87,16 +85,15 @@ func TestAuthHandler_Signup(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
-	t.Run("BadRequest_ValidationFailed", func(t *testing.T) {
+	t.Run("BadRequestValidationFailed", func(t *testing.T) {
 		r, _ := setupRouter()
 		reqBody := request.SignupRequest{
 			Email:    "invalid-email",
-			Password: "123", // too short
+			Password: "123",
 		}
-		jsonBody, _ := json.Marshal(reqBody)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/api/auth/signup", bytes.NewBuffer(jsonBody))
+		req := testutil.NewJSONRequest(t, http.MethodPost, "/api/auth/signup", reqBody)
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -108,13 +105,12 @@ func TestAuthHandler_Signup(t *testing.T) {
 			Email:    "test@example.com",
 			Password: "password123",
 		}
-		jsonBody, _ := json.Marshal(reqBody)
 
 		mockClient.On("Signup", mock.Anything, reqBody.Email, reqBody.Password).
 			Return(nil, errors.New("internal error"))
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/api/auth/signup", bytes.NewBuffer(jsonBody))
+		req := testutil.NewJSONRequest(t, http.MethodPost, "/api/auth/signup", reqBody)
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
@@ -129,7 +125,6 @@ func TestAuthHandler_Login(t *testing.T) {
 			Email:    "test@example.com",
 			Password: "password123",
 		}
-		jsonBody, _ := json.Marshal(reqBody)
 
 		mockClient.On("Login", mock.Anything, reqBody.Email, reqBody.Password).
 			Return(&response.LoginResponse{
@@ -138,7 +133,7 @@ func TestAuthHandler_Login(t *testing.T) {
 			}, nil)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/api/auth/login", bytes.NewBuffer(jsonBody))
+		req := testutil.NewJSONRequest(t, http.MethodPost, "/api/auth/login", reqBody)
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -152,7 +147,7 @@ func TestAuthHandler_Login(t *testing.T) {
 		mockClient.AssertExpectations(t)
 	})
 
-	t.Run("BadRequest_InvalidJSON", func(t *testing.T) {
+	t.Run("BadRequestInvalidJSON", func(t *testing.T) {
 		r, _ := setupRouter()
 
 		w := httptest.NewRecorder()
