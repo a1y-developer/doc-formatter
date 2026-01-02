@@ -1,4 +1,4 @@
-package app
+package gateway
 
 import (
 	"github.com/a1y/doc-formatter/cmd/gateway/options"

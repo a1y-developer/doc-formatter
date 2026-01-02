@@ -1,4 +1,4 @@
-package app
+package storage
 
 import (
 	"github.com/a1y/doc-formatter/cmd/storage/options"

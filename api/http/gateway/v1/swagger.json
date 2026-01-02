@@ -1,8 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "API Gateway for AI Doc Formatter",
-        "title": "AI Doc Formatter API Gateway",
+        "description": "API for AI Doc Formatter",
+        "title": "AI Doc Formatter API",
         "contact": {},
         "version": "1.0"
     },
