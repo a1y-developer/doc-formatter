@@ -105,7 +105,7 @@ gen-api-spec: ## Generate API Specification with OpenAPI format
 		echo "swag is already installed"; \
 	fi
 	@echo "Running swag init..."
-	@swag init --parseInternal -g cmd/gateway/main.go -o api/http/gateway/v1/ || { echo 'swag init failed!'; exit 1; }
+	@swag init --parseInternal -g ./df.go -o api/http/gateway/v1/ || { echo 'swag init failed!'; exit 1; }
 
 	@echo "Running swag fmt..."
 	@swag fmt --dir internal/gateway/ || { echo 'swag fmt failed!'; exit 1; }

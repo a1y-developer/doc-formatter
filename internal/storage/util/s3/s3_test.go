@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/a1y/doc-formatter/internal/storage"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
@@ -177,6 +178,26 @@ func TestS3Storage_DeleteObject_Error(t *testing.T) {
 	ok, err := storage.DeleteObject(context.Background(), "path/to/object.txt")
 	require.Error(t, err)
 	require.False(t, ok)
+}
+
+func TestNewS3Storage_InvalidBucket(t *testing.T) {
+	// Disable metadata lookups to avoid hanging on non-cloud environments.
+	t.Setenv("AWS_EC2_METADATA_DISABLED", "true")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	cfg := &storage.Config{
+		Region:          "us-east-1",
+		AccessKeyID:     "AKID",
+		AccessKeySecret: "SECRET",
+		Bucket:          "nonexistent-bucket-for-testing-doc-formatter",
+	}
+
+	s3Storage, err := NewS3Storage(ctx, cfg)
+
+	require.Error(t, err)
+	require.Nil(t, s3Storage)
 }
 
 func TestS3Storage_DeleteObject_WaiterError(t *testing.T) {

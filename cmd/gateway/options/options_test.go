@@ -38,3 +38,14 @@ func TestOptions_Validate(t *testing.T) {
 	err := opts.Validate()
 	assert.NoError(t, err)
 }
+
+func TestOptions_Run_InvalidAddressReturnsError(t *testing.T) {
+	opts := &Options{
+		Address:        "invalid-address",
+		AuthService:    "localhost:8081",
+		StorageService: "localhost:8082",
+	}
+
+	err := opts.Run()
+	assert.Error(t, err)
+}

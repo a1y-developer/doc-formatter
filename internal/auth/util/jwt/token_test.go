@@ -193,3 +193,13 @@ func TestGenerateToken(t *testing.T) {
 		assert.Greater(t, exp2, exp1, "Longer duration should have later expiration")
 	})
 }
+
+func TestNewTokenClaim(t *testing.T) {
+	t.Parallel()
+
+	path := "/tmp/private.key"
+	claim := NewTokenClaim(path)
+
+	assert.NotNil(t, claim)
+	assert.Equal(t, path, claim.TokenPath)
+}

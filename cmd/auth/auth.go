@@ -1,4 +1,4 @@
-package app
+package auth
 
 import (
 	"github.com/a1y/doc-formatter/cmd/auth/options"

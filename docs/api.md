@@ -1,8 +1,8 @@
 
 
 
-# AI Doc Formatter API Gateway
-API Gateway for AI Doc Formatter
+# AI Doc Formatter API
+API for AI Doc Formatter
   
 
 ## Informations

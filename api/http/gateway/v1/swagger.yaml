@@ -43,8 +43,8 @@ definitions:
     type: object
 info:
   contact: {}
-  description: API Gateway for AI Doc Formatter
-  title: AI Doc Formatter API Gateway
+  description: API for AI Doc Formatter
+  title: AI Doc Formatter API
   version: "1.0"
 paths:
   /api/v1/auth/login:
