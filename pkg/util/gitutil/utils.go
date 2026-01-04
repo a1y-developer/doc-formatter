@@ -15,7 +15,7 @@ import (
 
 var (
 	ErrEmptyGitTag = errors.New("empty tag")
-	ErrNoTagFound = errors.New("no tag found")
+	ErrNoTagFound  = errors.New("no tag found")
 )
 
 const (

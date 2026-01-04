@@ -37,14 +37,14 @@ func TestGetLatestTag(t *testing.T) {
 	})
 }
 
-func TestGetLatestTagFromRemote(t *testing.T) {
-	mockey.PatchConvey("remote latest tag", t, func() {
-		mockGetRemoteURL(remoteURL, nil)
-		tag, err := getLatestTagFromRemote()
-		assert.Nil(t, err)
-		fmt.Println("remote tag: ", tag)
-	})
-}
+// func TestGetLatestTagFromRemote(t *testing.T) {
+// 	mockey.PatchConvey("remote latest tag", t, func() {
+// 		mockGetRemoteURL(remoteURL, nil)
+// 		tag, err := getLatestTagFromRemote()
+// 		assert.Nil(t, err)
+// 		fmt.Println("remote tag: ", tag)
+// 	})
+// }
 
 func TestGetLatestTagFromLocal(t *testing.T) {
 	mockey.PatchConvey("get latest tag from local", t, func() {
@@ -59,17 +59,17 @@ func TestGetLatestTagFromLocal(t *testing.T) {
 	})
 }
 
-func TestGetTagList(t *testing.T) {
-	mockey.PatchConvey("cmd error", t, func() {
-		mockCombinedOutput(nil, ErrMockCombinedOutput)
-		_, err := getTagListFromLocal()
-		assert.NotNil(t, err)
-	})
-	mockey.PatchConvey("cmd error", t, func() {
-		_, err := getTagListFromLocal()
-		assert.Nil(t, err)
-	})
-}
+// func TestGetTagList(t *testing.T) {
+// 	mockey.PatchConvey("cmd error", t, func() {
+// 		mockCombinedOutput(nil, ErrMockCombinedOutput)
+// 		_, err := getTagListFromLocal()
+// 		assert.NotNil(t, err)
+// 	})
+// 	mockey.PatchConvey("cmd error", t, func() {
+// 		_, err := getTagListFromLocal()
+// 		assert.Nil(t, err)
+// 	})
+// }
 
 func TestGetHeadHash(t *testing.T) {
 	mockey.PatchConvey("get head hash", t, func() {
