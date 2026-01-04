@@ -54,7 +54,7 @@ release:
   draft: false
   footer: |
     ## Docker Images
-    * `a1y-developer/doc-formatter:{{ .Env.DF_VERSION }}`
+    * `a1ydeveloper/doc-formatter:{{ .Env.DF_VERSION }}`
 
 dockers:
   - use: buildx
@@ -62,8 +62,8 @@ dockers:
     goarch: amd64
     dockerfile: Dockerfile
     image_templates:
-      - a1y-developer/{{ .ProjectName }}:{{ .Tag }}
-      - a1y-developer/{{ .ProjectName }}:latest
+      - a1ydeveloper/{{ .ProjectName }}:{{ .Tag }}
+      - a1ydeveloper/{{ .ProjectName }}:latest
     build_flag_templates:
       - "--target=goreleaser"
       - "--pull"

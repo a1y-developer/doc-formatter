@@ -52,10 +52,10 @@ release:
     owner: a1y-developer
     name: doc-formatter
   draft: false
-  pre_release: true
+  prerelease: true
   footer: |
     ## Docker Images
-    * `a1y-developer/doc-formatter:{{ .Env.DF_VERSION }}`
+    * `a1ydeveloper/doc-formatter:{{ .Env.DF_VERSION }}`
 
 
 dockers:
@@ -64,7 +64,7 @@ dockers:
     goarch: amd64
     dockerfile: Dockerfile
     image_templates:
-      - a1y-developer/{{ .ProjectName }}:{{ .Tag }}
+      - a1ydeveloper/{{ .ProjectName }}:{{ .Tag }}
     build_flag_templates:
       - "--target=goreleaser"
       - "--pull"

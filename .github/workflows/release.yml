@@ -50,6 +50,7 @@ jobs:
   
   Release:
     runs-on: ubuntu-latest
+    needs: [Test, GolangLint]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -61,7 +62,7 @@ jobs:
           go-version: 1.25
       - name: Get version
         run: |
-          go run ./pkg/version > version.txt
+          go generate ./pkg/version > version.txt
           echo "df_version=$(cat version.txt | grep releaseVersion | cut -d ':' -f 2 | awk '$1=$1')" >> $GITHUB_OUTPUT
           rm version.txt
       - name: Check Formal Version
