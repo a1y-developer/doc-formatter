@@ -8,6 +8,13 @@ build/
 *.dll
 *.so
 *.dylib
+_build*
+build/bundles/
+build/yamls/
+build/charts/
+kclvm_build/
+kclvm_build/build/
+dist/
 
 # Test Output
 #
@@ -57,3 +64,7 @@ logs/
 
 # Temp
 tmp/
+
+# version
+*z_update_version.go
+version.txt

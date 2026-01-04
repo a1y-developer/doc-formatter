@@ -33,6 +33,20 @@ doc:  ## Start the documentation server with godoc
 	@which godoc > /dev/null || (echo "Installing godoc@latest ..."; go install golang.org/x/tools/cmd/godoc@latest && echo -e "Installation complete!\n")
 	godoc -http=:6060
 
+build-local-linux: ## Build doc-formatter for linux
+	# Delete old artifacts
+	-rm -f ./pkg/version/z_update_version.go
+	-rm -rf ./_build/bundles/doc-formatter-linux
+	mkdir -p ./_build/bundles/doc-formatter-linux/bin
+
+	# Update version
+	go generate ./pkg/version
+
+	# Build doc-formatter
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
+		go build -o ./_build/bundles/doc-formatter-linux/bin/df \
+		-ldflags="-s -w" -tags rpc .
+
 atlas: ## Install Atlas CLI
 	@which $(ATLAS) > /dev/null || (echo "Installing $(ATLAS) ..."; curl -sSf https://atlasgo.sh | sh && echo -e "Installation complete!\n")
 
