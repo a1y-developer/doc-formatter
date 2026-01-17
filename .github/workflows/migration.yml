@@ -5,14 +5,14 @@ on:
     branches:
       - main
     paths:
-      - "internal/**"
+      - "pkg/**"
       - "atlas.hcl"
       - ".github/workflows/migration.yml"
   push:
     branches:
       - main
     paths:
-      - "internal/**"
+      - "pkg/**"
       - "atlas.hcl"
       - ".github/workflows/migration.yml"
 
