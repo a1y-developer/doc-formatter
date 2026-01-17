@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/a1y/doc-formatter/cmd"
+	"github.com/a1y/doc-formatter/pkg/cmd"
 )
 
 // @title			AI Doc Formatter API
