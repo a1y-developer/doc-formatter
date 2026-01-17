@@ -19,7 +19,7 @@ To add a new service (e.g., `auth`), follow these steps:
     ```
 
 2.  **Create Schema Loader**:
-    Create a `main.go` file in `internal/<service>/infra/loader/` (e.g., [`internal/auth/infra/loader/main.go`](../internal/auth/infra/loader/main.go)) to load the GORM models.
+    Create a `main.go` file in `internal/<service>/infra/loader/` (e.g., [`internal/auth/infra/loader/main.go`](../pkg/auth/infra/loader/main.go)) to load the GORM models.
     ```go
     package main
 

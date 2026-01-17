@@ -4,7 +4,7 @@ PWD:=$(shell pwd)
 GOLINTER			?= golangci-lint
 GOLINTER_VERSION	?= v2.6.2
 COVER_FILE			?= coverage.out
-SOURCE_PATHS		?= ./...
+SOURCE_PATHS		?= ./pkg/...
 BUILD_PATH 			?= ./_build/bin
 ATLAS				?= atlas
 
@@ -122,7 +122,7 @@ gen-api-spec: ## Generate API Specification with OpenAPI format
 	@swag init --parseInternal -g ./df.go -o api/http/gateway/v1/ || { echo 'swag init failed!'; exit 1; }
 
 	@echo "Running swag fmt..."
-	@swag fmt --dir internal/gateway/ || { echo 'swag fmt failed!'; exit 1; }
+	@swag fmt --dir ./pkg/gateway/ || { echo 'swag fmt failed!'; exit 1; }
 	@echo "API Spec generated successfully without errors!"
 
 gen-api-doc: ## Generate API Documentation by API Specification

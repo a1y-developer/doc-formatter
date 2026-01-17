@@ -5,7 +5,7 @@ locals {
 
 data "external_schema" "auth" {
   program = [
-    "go", "run", "-mod=mod", "./internal/auth/infra/loader",
+    "go", "run", "-mod=mod", "./pkg/auth/infra/loader",
   ]
 }
 
@@ -13,7 +13,7 @@ env "auth" {
   src = data.external_schema.auth.url
   url = "${local.auth_db_url}"
   dev = "docker://postgres/16/auth_db"
-  migration { dir = "file://internal/auth/infra/persistence/migrations" }
+  migration { dir = "file://pkg/auth/infra/persistence/migrations" }
   format {
     migrate {
       diff = "{{ sql . \"  \" }}"
@@ -23,7 +23,7 @@ env "auth" {
 
 data "external_schema" "storage" {
   program = [
-    "go", "run", "-mod=mod", "./internal/storage/infra/loader",
+    "go", "run", "-mod=mod", "./pkg/storage/infra/loader",
   ]
 }
 
@@ -31,7 +31,7 @@ env "storage" {
   src = data.external_schema.storage.url
   url = "${local.storage_db_url}"
   dev = "docker://postgres/16/storage_db"
-  migration { dir = "file://internal/storage/infra/persistence/migrations" }
+  migration { dir = "file://pkg/storage/infra/persistence/migrations" }
   format {
     migrate {
       diff = "{{ sql . \"  \" }}"

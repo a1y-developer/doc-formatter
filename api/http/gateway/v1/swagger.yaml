@@ -1,5 +1,28 @@
 basePath: /
 definitions:
+  handler.Response:
+    properties:
+      costTime:
+        description: Time taken for the request.
+        type: string
+      data:
+        description: Data payload.
+      endTime:
+        description: Request end time.
+        type: string
+      message:
+        description: Descriptive message.
+        type: string
+      startTime:
+        description: Request start time.
+        type: string
+      success:
+        description: Indicates success status.
+        type: boolean
+      traceID:
+        description: Trace identifier.
+        type: string
+    type: object
   request.LoginRequest:
     properties:
       email:
@@ -52,6 +75,7 @@ paths:
       consumes:
       - application/json
       description: Login user and return JWT token
+      operationId: Login
       parameters:
       - description: Login payload
         in: body
@@ -63,27 +87,29 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Success
           schema:
-            $ref: '#/definitions/response.LoginResponse'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.LoginResponse'
+              type: object
         "400":
           description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
+          schema: {}
         "401":
           description: Unauthorized
-          schema:
-            additionalProperties:
-              type: string
-            type: object
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
         "500":
           description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
+          schema: {}
       summary: Login
       tags:
       - Auth
@@ -92,6 +118,7 @@ paths:
       consumes:
       - application/json
       description: Create a new user account
+      operationId: Signup
       parameters:
       - description: Signup payload
         in: body
@@ -103,21 +130,29 @@ paths:
       - application/json
       responses:
         "201":
-          description: Created
+          description: Success
           schema:
-            $ref: '#/definitions/response.SignUpResponse'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.SignUpResponse'
+              type: object
         "400":
           description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
         "500":
           description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
+          schema: {}
       summary: Signup
       tags:
       - Auth
@@ -126,6 +161,7 @@ paths:
       consumes:
       - multipart/form-data
       description: Upload a file for a user
+      operationId: UploadFile
       parameters:
       - description: User ID (UUID)
         in: formData
@@ -141,21 +177,29 @@ paths:
       - application/json
       responses:
         "201":
-          description: Created
+          description: Success
           schema:
-            $ref: '#/definitions/response.UploadFileResponse'
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.UploadFileResponse'
+              type: object
         "400":
           description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
         "500":
           description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
+          schema: {}
       summary: Upload file
       tags:
       - Storage

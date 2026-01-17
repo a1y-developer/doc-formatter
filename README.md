@@ -1,5 +1,7 @@
 # Doc Formatter
 [![Test](https://github.com/a1y-developer/doc-formatter/actions/workflows/test.yml/badge.svg)](https://github.com/a1y-developer/doc-formatter/actions/workflows/test.yml)
-[![Coverage Status](https://coveralls.io/repos/github/a1y-developer/doc-formatter/badge.svg?branch=main)](https://coveralls.io/github/a1y-developer/doc-formatter?branch=main)
+[![Release](https://github.com/a1y-developer/doc-formatter/actions/workflows/release.yml/badge.svg)](https://github.com/a1y-developer/doc-formatter/actions/workflows/release.yml)
+[![Docker Image Version](https://img.shields.io/docker/v/a1ydeveloper/doc-formatter?logo=docker&color=blue)](https://hub.docker.com/r/a1ydeveloper/doc-formatter)
+![GitHub Tag](https://img.shields.io/github/v/tag/a1y-developer/doc-formatter)
 
 to be updated...

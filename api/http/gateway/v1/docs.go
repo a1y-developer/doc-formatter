@@ -28,6 +28,7 @@ const docTemplate = `{
                     "Auth"
                 ],
                 "summary": "Login",
+                "operationId": "Login",
                 "parameters": [
                     {
                         "description": "Login payload",
@@ -41,37 +42,42 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/response.LoginResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.LoginResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
+                        "schema": {}
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
+                        "schema": {}
                     }
                 }
             }
@@ -89,6 +95,7 @@ const docTemplate = `{
                     "Auth"
                 ],
                 "summary": "Signup",
+                "operationId": "Signup",
                 "parameters": [
                     {
                         "description": "Signup payload",
@@ -102,28 +109,42 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created",
+                        "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/response.SignUpResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.SignUpResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
+                        "schema": {}
                     }
                 }
             }
@@ -141,6 +162,7 @@ const docTemplate = `{
                     "Storage"
                 ],
                 "summary": "Upload file",
+                "operationId": "UploadFile",
                 "parameters": [
                     {
                         "type": "string",
@@ -159,34 +181,80 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created",
+                        "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/response.UploadFileResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.UploadFileResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
+                        "schema": {}
                     }
                 }
             }
         }
     },
     "definitions": {
+        "handler.Response": {
+            "type": "object",
+            "properties": {
+                "costTime": {
+                    "description": "Time taken for the request.",
+                    "type": "string"
+                },
+                "data": {
+                    "description": "Data payload."
+                },
+                "endTime": {
+                    "description": "Request end time.",
+                    "type": "string"
+                },
+                "message": {
+                    "description": "Descriptive message.",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "Request start time.",
+                    "type": "string"
+                },
+                "success": {
+                    "description": "Indicates success status.",
+                    "type": "boolean"
+                },
+                "traceID": {
+                    "description": "Trace identifier.",
+                    "type": "string"
+                }
+            }
+        },
         "request.LoginRequest": {
             "type": "object",
             "required": [
