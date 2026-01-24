@@ -47,6 +47,34 @@ build-local-linux: ## Build doc-formatter for linux
 		go build -o ./_build/bundles/doc-formatter-linux/bin/df \
 		-ldflags="-s -w" -tags rpc .
 
+build-local-darwin: ## Build doc-formatter for darwin
+	# Delete old artifacts
+	-rm -f ./pkg/version/z_update_version.go
+	-rm -rf ./_build/bundles/doc-formatter-darwin
+	mkdir -p ./_build/bundles/doc-formatter-darwin/bin
+
+	# Update version
+	go generate ./pkg/version
+
+	# Build doc-formatter
+	GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
+		go build -o ./_build/bundles/doc-formatter-darwin/bin/df \
+		-ldflags="-s -w" -tags rpc .
+
+build-local-darwin-arm64: ## Build doc-formatter for darwin arm64
+	# Delete old artifacts
+	-rm -f ./pkg/version/z_update_version.go
+	-rm -rf ./_build/bundles/doc-formatter-darwin-arm64
+	mkdir -p ./_build/bundles/doc-formatter-darwin-arm64/bin
+
+	# Update version
+	go generate ./pkg/version
+
+	# Build doc-formatter
+	GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
+		go build -o ./_build/bundles/doc-formatter-darwin-arm64/bin/df \
+		-ldflags="-s -w" -tags rpc .
+
 atlas: ## Install Atlas CLI
 	@which $(ATLAS) > /dev/null || (echo "Installing $(ATLAS) ..."; curl -sSf https://atlasgo.sh | sh && echo -e "Installation complete!\n")
 
@@ -138,4 +166,4 @@ gen-api-doc: ## Generate API Documentation by API Specification
 	@swagger generate markdown -f ./api/http/gateway/v1/swagger.json --output=docs/api.md || { echo 'swagger generate markdown failed!'; exit 1; }
 	@echo "API documentation generated successfully!"
 
-.PHONY: help test cover cover-html lint lint-fix doc atlas migration migration-status migrate migrate-down migrate-hash migrate-validate gen-api-spec gen-api-doc
+.PHONY: help test cover cover-html lint lint-fix doc atlas migration migration-status migrate migrate-down migrate-hash migrate-validate gen-api-spec gen-api-doc build-local-linux build-local-darwin build-local-darwin-arm64
