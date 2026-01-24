@@ -12,7 +12,7 @@ ENV PATH="/root/go/bin:${PATH}"
 ENV LANG=en_US.utf8
 
 FROM base AS goreleaser
-COPY doc-formatter /usr/local/bin/df
+COPY df /usr/local/bin/df
 RUN /usr/local/bin/df
 
 FROM base

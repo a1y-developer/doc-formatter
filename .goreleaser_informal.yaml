@@ -15,21 +15,27 @@ before:
     - go generate ./pkg/version
 
 builds:
-  - env:
+  - id: default
+    env:
       - CGO_ENABLED=0
     goos:
       - linux
+      - darwin
     goarch:
       - amd64
+      - arm64
     flags:
       - -tags=rpc
     ldflags:
       - -s
       - -w
     main: .
+    binary: df
 
 archives:
-  - formats: [tar.gz]
+  - id: default
+    builds: [default]
+    formats: [tar.gz]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     # use zip for windows archives
     format_overrides:
@@ -55,7 +61,7 @@ release:
   prerelease: true
   footer: |
     ## Docker Images
-    * `a1ydeveloper/doc-formatter:{{ .Env.DF_VERSION }}`
+    * `a1ydeveloper/doc-formatter:{{ .Tag }}`
 
 
 dockers:
