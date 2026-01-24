@@ -36,7 +36,7 @@ func (o *DatabaseOptions) InstallDB() (*gorm.DB, error) {
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s",
 		o.DBHost, o.DBUser, o.DBPassword, o.DBName,
-		o.DBPort, "disable", "Asia/Ho_Chi_Minh",
+		o.DBPort, "disable", "UTC",
 	)
 	return gorm.Open(postgres.Open(dsn), &gorm.Config{})
 }
