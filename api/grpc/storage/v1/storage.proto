@@ -4,6 +4,16 @@ package storage;
 
 option go_package = "github.com/a1y/doc-formatter/api/grpc/storage/v1;storagepb";
 
+message Document {
+  string id = 1;
+  string user_id = 2;
+  string file_name = 3;
+  int64 file_size = 4;
+  string object_key = 5;
+  int64 created_at = 6;
+  int64 updated_at = 7;
+}
+
 // UPLOAD FILE
 message UploadFileRequest {
   string user_id = 1;
@@ -13,11 +23,21 @@ message UploadFileRequest {
 }
 
 message UploadFileResponse {
-  string file_id = 1;
-  string file_name = 2;
+  Document document = 1;
+}
+
+// LIST FILES BY user_id
+
+message ListFilesByUserIdRequest {
+  string user_id = 1;
+}
+
+message ListFilesByUserIdResponse {
+  repeated Document documents = 1;
 }
 
 // STORAGE SERVICE DEFINITION
 service StorageService {
   rpc UploadFile (UploadFileRequest) returns (UploadFileResponse);
+  rpc ListFilesByUserId (ListFilesByUserIdRequest) returns (ListFilesByUserIdResponse);
 }

@@ -11,6 +11,7 @@ import (
 
 type StorageClient interface {
 	UploadFile(ctx context.Context, req *storagepb.UploadFileRequest) (*storagepb.UploadFileResponse, error)
+	ListFilesByUserId(ctx context.Context, req *storagepb.ListFilesByUserIdRequest) (*storagepb.ListFilesByUserIdResponse, error)
 }
 
 var _ StorageClient = &storageClient{}

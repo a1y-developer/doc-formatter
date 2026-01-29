@@ -92,6 +92,7 @@ func setupAPIV1(r gin.IRouter, config *gateway.Config) error {
 	storageGroup := r.Group("/storage")
 	{
 		storageGroup.POST("/upload", storageHandler.UploadFile)
+		storageGroup.GET("/files", storageHandler.ListFilesByUserId)
 	}
 
 	return nil

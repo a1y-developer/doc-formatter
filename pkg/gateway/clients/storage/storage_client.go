@@ -12,3 +12,9 @@ func (s *storageClient) UploadFile(ctx context.Context, req *storagepb.UploadFil
 	defer cancel()
 	return s.client.UploadFile(ctx, req)
 }
+
+func (s *storageClient) ListFilesByUserId(ctx context.Context, req *storagepb.ListFilesByUserIdRequest) (*storagepb.ListFilesByUserIdResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	return s.client.ListFilesByUserId(ctx, req)
+}

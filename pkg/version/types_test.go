@@ -3,6 +3,7 @@ package version
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"reflect"
 	"runtime"
 	"testing"
@@ -25,9 +26,8 @@ func TestDocFormatterVersionNormal(t *testing.T) {
 		mockIsHeadAtTag()
 		mockIsDirty()
 		mockTime()
-		mockRuntime()
 
-		versionJSON := `{
+		versionJSON := fmt.Sprintf(`{
 		"releaseVersion": "0.3.11-alpha",
 		"gitInfo": {
 			"latestTag": "v0.3.11-alpha",
@@ -35,14 +35,14 @@ func TestDocFormatterVersionNormal(t *testing.T) {
 			"treeState": "clean"
 		},
 		"buildInfo": {
-			"goVersion": "go1.16.5",
-			"GOOS": "` + runtime.GOOS + `",
-			"GOARCH": "` + runtime.GOARCH + `",
-			"numCPU": 8,
-			"compiler": "` + runtime.Compiler + `",
+			"goVersion": "%s",
+			"GOOS": "%s",
+			"GOARCH": "%s",
+			"numCPU": %d,
+			"compiler": "%s",
 			"buildTime": "2006-01-02 15:04:05"
 		}
-	}`
+	}`, runtime.Version(), runtime.GOOS, runtime.GOARCH, runtime.NumCPU(), runtime.Compiler)
 
 		var want Info
 		err := json.Unmarshal([]byte(versionJSON), &want)
@@ -143,7 +143,6 @@ func TestDocFormatterVersionReturnError(t *testing.T) {
 	for _, tt := range tests {
 		mockey.PatchConvey(tt.name, t, func() {
 			mockTime()
-			mockRuntime()
 			tt.specialMock()
 			version, err := NewInfo()
 			assert.Nil(t, version)
@@ -161,13 +160,12 @@ func TestDocFormatterVersionNotHeadTag(t *testing.T) {
 		mockNewVersion()
 		mockIsDirty()
 		mockTime()
-		mockRuntime()
 
 		mockey.Mock(git.IsHeadAtTag).To(func(tag string) (bool, error) {
 			return false, nil
 		}).Build()
 
-		versionJSON := `{
+		versionJSON := fmt.Sprintf(`{
 	"releaseVersion": "0.3.11-alpha+af79cd23",
 	"gitInfo": {
 		"latestTag": "v0.3.11-alpha",
@@ -175,14 +173,14 @@ func TestDocFormatterVersionNotHeadTag(t *testing.T) {
 		"treeState": "clean"
 	},
 	"buildInfo": {
-		"goVersion": "go1.16.5",
-		"GOOS": "` + runtime.GOOS + `",
-		"GOARCH": "` + runtime.GOARCH + `",
-		"numCPU": 8,
-		"compiler": "` + runtime.Compiler + `",
+		"goVersion": "%s",
+		"GOOS": "%s",
+		"GOARCH": "%s",
+		"numCPU": %d,
+		"compiler": "%s",
 		"buildTime": "2006-01-02 15:04:05"
 	}
-}`
+}`, runtime.Version(), runtime.GOOS, runtime.GOARCH, runtime.NumCPU(), runtime.Compiler)
 
 		var want Info
 		err := json.Unmarshal([]byte(versionJSON), &want)
@@ -239,14 +237,5 @@ func mockTime() {
 	mockey.Mock(time.Now).To(func() time.Time {
 		t, _ := time.Parse("2006-01-02 15:04:05", "2006-01-02 15:04:05")
 		return t
-	}).Build()
-}
-
-func mockRuntime() {
-	mockey.Mock(runtime.Version).To(func() string {
-		return "go1.16.5"
-	}).Build()
-	mockey.Mock(numCPU).To(func() int {
-		return 8
 	}).Build()
 }

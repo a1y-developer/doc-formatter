@@ -10,10 +10,34 @@ import (
 
 type fakeStorageClient struct{}
 
+// ListFilesByUserId implements [storage.StorageClient].
+func (f *fakeStorageClient) ListFilesByUserId(ctx context.Context, req *storagepb.ListFilesByUserIdRequest) (*storagepb.ListFilesByUserIdResponse, error) {
+	return &storagepb.ListFilesByUserIdResponse{
+		Documents: []*storagepb.Document{
+			{
+				Id:       "file-id-1",
+				UserId:   req.UserId,
+				FileName: "file1.txt",
+				FileSize: 100,
+			},
+			{
+				Id:       "file-id-2",
+				UserId:   req.UserId,
+				FileName: "file2.txt",
+				FileSize: 200,
+			},
+		},
+	}, nil
+}
+
 func (f *fakeStorageClient) UploadFile(ctx context.Context, req *storagepb.UploadFileRequest) (*storagepb.UploadFileResponse, error) {
 	return &storagepb.UploadFileResponse{
-		FileId:   "fake-id",
-		FileName: req.GetFileName(),
+		Document: &storagepb.Document{
+			Id:       "fake-file-id",
+			UserId:   req.UserId,
+			FileName: req.FileName,
+			FileSize: req.FileSize,
+		},
 	}, nil
 }
 

@@ -48,3 +48,27 @@ func TestHandler_UploadFile_NilDocumentManager_Panics(t *testing.T) {
 		_, _ = h.UploadFile(context.Background(), req)
 	})
 }
+
+func TestHandler_ListFilesByUserId_InvalidUserID_Panics(t *testing.T) {
+	h := &Handler{}
+
+	req := &storagepb.ListFilesByUserIdRequest{
+		UserId: "not-a-uuid",
+	}
+
+	require.Panics(t, func() {
+		_, _ = h.ListFilesByUserId(context.Background(), req)
+	})
+}
+
+func TestHandler_ListFilesByUserId_NilDocumentManager_Panics(t *testing.T) {
+	h := &Handler{}
+
+	req := &storagepb.ListFilesByUserIdRequest{
+		UserId: uuid.New().String(),
+	}
+
+	require.Panics(t, func() {
+		_, _ = h.ListFilesByUserId(context.Background(), req)
+	})
+}

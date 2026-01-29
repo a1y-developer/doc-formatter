@@ -2,6 +2,7 @@ package entity
 
 import (
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -12,6 +13,8 @@ type Document struct {
 	FileName  string    `yaml:"fileName" json:"fileName"`
 	FileSize  int64     `yaml:"fileSize" json:"fileSize"`
 	ObjectKey string    `yaml:"objectKey" json:"objectKey"`
+	CreateAt  time.Time `yaml:"createAt" json:"createAt"`
+	UpdateAt  time.Time `yaml:"updateAt" json:"updateAt"`
 }
 
 func (d *Document) Validate() error {
