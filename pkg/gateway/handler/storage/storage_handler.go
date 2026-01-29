@@ -15,14 +15,14 @@ import (
 // @Tags			Storage
 // @Accept			multipart/form-data
 // @Produce		json
-// @Param			user_id	formData	string												true	"User ID (UUID)"
-// @Param			file	formData	file												true	"File to upload"
-// @Success		201		{object}	handler.Response{data=response.UploadFileResponse}	"Success"
-// @Failure		400		{object}	error												"Bad Request"
-// @Failure		401		{object}	error												"Unauthorized"
-// @Failure		429		{object}	error												"Too Many Requests"
-// @Failure		404		{object}	error												"Not Found"
-// @Failure		500		{object}	error												"Internal Server Error"
+// @Param			user_id	formData	string										true	"User ID (UUID)"
+// @Param			file	formData	file										true	"File to upload"
+// @Success		201		{object}	handler.Response{data=response.Document}	"Success"
+// @Failure		400		{object}	error										"Bad Request"
+// @Failure		401		{object}	error										"Unauthorized"
+// @Failure		429		{object}	error										"Too Many Requests"
+// @Failure		404		{object}	error										"Not Found"
+// @Failure		500		{object}	error										"Internal Server Error"
 // @Router			/api/v1/storage/upload [post]
 func (h *StorageHandler) UploadFile(c *gin.Context) {
 	var requestPayload request.UploadFileRequest
@@ -56,4 +56,39 @@ func (h *StorageHandler) UploadFile(c *gin.Context) {
 		return
 	}
 	handler.HandleResultWithStatus(c, nil, response, http.StatusCreated)
+}
+
+// @Id				ListFilesByUserId
+// @Summary		List files by user ID
+// @Description	Retrieve a list of files uploaded by a specific user
+// @Tags			Storage
+// @Accept			json
+// @Produce		json
+// @Param			user_id	query		string										true	"User ID (UUID)"
+// @Success		200		{object}	handler.Response{data=[]response.Document}	"Success"
+// @Failure		400		{object}	error										"Bad Request"
+// @Failure		401		{object}	error										"Unauthorized"
+// @Failure		429		{object}	error										"Too Many Requests"
+// @Failure		404		{object}	error										"Not Found"
+// @Failure		500		{object}	error										"Internal Server Error"
+// @Router			/api/v1/storage/files [get]
+func (h *StorageHandler) ListFilesByUserId(c *gin.Context) {
+	var requestPayload request.ListFilesByUserIdRequest
+	if err := requestPayload.Decode(c); err != nil {
+		handler.HandleResultWithStatus(c, err, nil, http.StatusBadRequest)
+		return
+	}
+
+	// Validate request payload
+	if err := requestPayload.Validate(); err != nil {
+		handler.HandleResultWithStatus(c, err, nil, http.StatusBadRequest)
+		return
+	}
+
+	response, err := h.storageManager.ListFilesByUserId(c.Request.Context(), requestPayload.UserID)
+	if err != nil {
+		handler.HandleResult(c, err, response)
+		return
+	}
+	handler.HandleResult(c, nil, response)
 }

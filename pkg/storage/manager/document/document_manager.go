@@ -7,6 +7,7 @@ import (
 	"io"
 
 	"github.com/a1y/doc-formatter/pkg/storage/domain/entity"
+	"github.com/google/uuid"
 	"github.com/jinzhu/copier"
 )
 
@@ -30,4 +31,8 @@ func (m *DocumentManager) UploadDocument(ctx context.Context, document *entity.D
 		return nil, err
 	}
 	return &createdEntity, nil
+}
+
+func (m *DocumentManager) ListDocumentsByUserID(ctx context.Context, userID uuid.UUID) ([]*entity.Document, error) {
+	return m.documentRepo.ListByUserID(ctx, userID)
 }

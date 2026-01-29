@@ -42,11 +42,120 @@ API for AI Doc Formatter
 
 | Method  | URI     | Name   | Summary |
 |---------|---------|--------|---------|
+| GET | /api/v1/storage/files | [list files by user Id](#list-files-by-user-id) | List files by user ID |
 | POST | /api/v1/storage/upload | [upload file](#upload-file) | Upload file |
   
 
 
 ## Paths
+
+### <span id="list-files-by-user-id"></span> List files by user ID (*ListFilesByUserId*)
+
+```
+GET /api/v1/storage/files
+```
+
+Retrieve a list of files uploaded by a specific user
+
+#### Consumes
+  * application/json
+
+#### Produces
+  * application/json
+
+#### Parameters
+
+| Name | Source | Type | Go type | Separator | Required | Default | Description |
+|------|--------|------|---------|-----------| :------: |---------|-------------|
+| user_id | `query` | string | `string` |  | ✓ |  | User ID (UUID) |
+
+#### All responses
+| Code | Status | Description | Has headers | Schema |
+|------|--------|-------------|:-----------:|--------|
+| [200](#list-files-by-user-id-200) | OK | Success |  | [schema](#list-files-by-user-id-200-schema) |
+| [400](#list-files-by-user-id-400) | Bad Request | Bad Request |  | [schema](#list-files-by-user-id-400-schema) |
+| [401](#list-files-by-user-id-401) | Unauthorized | Unauthorized |  | [schema](#list-files-by-user-id-401-schema) |
+| [404](#list-files-by-user-id-404) | Not Found | Not Found |  | [schema](#list-files-by-user-id-404-schema) |
+| [429](#list-files-by-user-id-429) | Too Many Requests | Too Many Requests |  | [schema](#list-files-by-user-id-429-schema) |
+| [500](#list-files-by-user-id-500) | Internal Server Error | Internal Server Error |  | [schema](#list-files-by-user-id-500-schema) |
+
+#### Responses
+
+
+##### <span id="list-files-by-user-id-200"></span> 200 - Success
+Status: OK
+
+###### <span id="list-files-by-user-id-200-schema"></span> Schema
+   
+  
+
+[ListFilesByUserIDOKBody](#list-files-by-user-id-o-k-body)
+
+##### <span id="list-files-by-user-id-400"></span> 400 - Bad Request
+Status: Bad Request
+
+###### <span id="list-files-by-user-id-400-schema"></span> Schema
+   
+  
+
+any
+
+##### <span id="list-files-by-user-id-401"></span> 401 - Unauthorized
+Status: Unauthorized
+
+###### <span id="list-files-by-user-id-401-schema"></span> Schema
+   
+  
+
+any
+
+##### <span id="list-files-by-user-id-404"></span> 404 - Not Found
+Status: Not Found
+
+###### <span id="list-files-by-user-id-404-schema"></span> Schema
+   
+  
+
+any
+
+##### <span id="list-files-by-user-id-429"></span> 429 - Too Many Requests
+Status: Too Many Requests
+
+###### <span id="list-files-by-user-id-429-schema"></span> Schema
+   
+  
+
+any
+
+##### <span id="list-files-by-user-id-500"></span> 500 - Internal Server Error
+Status: Internal Server Error
+
+###### <span id="list-files-by-user-id-500-schema"></span> Schema
+   
+  
+
+any
+
+###### Inlined models
+
+**<span id="list-files-by-user-id-o-k-body"></span> ListFilesByUserIDOKBody**
+
+
+  
+
+
+* composed type [HandlerResponse](#handler-response)
+* inlined member (*listFilesByUserIdOKBodyAO1*)
+
+
+
+**Properties**
+
+| Name | Type | Go type | Required | Default | Description | Example |
+|------|------|---------|:--------:| ------- |-------------|---------|
+| data | [][ResponseDocument](#response-document)| `[]*models.ResponseDocument` |  | |  |  |
+
+
 
 ### <span id="login"></span> Login (*Login*)
 
@@ -369,7 +478,7 @@ any
 
 | Name | Type | Go type | Required | Default | Description | Example |
 |------|------|---------|:--------:| ------- |-------------|---------|
-| data | [ResponseUploadFileResponse](#response-upload-file-response)| `models.ResponseUploadFileResponse` |  | |  |  |
+| data | [ResponseDocument](#response-document)| `models.ResponseDocument` |  | |  |  |
 
 
 
@@ -428,6 +537,26 @@ any
 
 
 
+### <span id="response-document"></span> response.Document
+
+
+  
+
+
+
+**Properties**
+
+| Name | Type | Go type | Required | Default | Description | Example |
+|------|------|---------|:--------:| ------- |-------------|---------|
+| created_at | integer| `int64` |  | |  |  |
+| file_name | string| `string` |  | |  |  |
+| file_size | integer| `int64` |  | |  |  |
+| id | string| `string` |  | |  |  |
+| updated_at | integer| `int64` |  | |  |  |
+| user_id | string| `string` |  | |  |  |
+
+
+
 ### <span id="response-login-response"></span> response.LoginResponse
 
 
@@ -456,21 +585,5 @@ any
 | Name | Type | Go type | Required | Default | Description | Example |
 |------|------|---------|:--------:| ------- |-------------|---------|
 | user_id | string| `string` |  | |  |  |
-
-
-
-### <span id="response-upload-file-response"></span> response.UploadFileResponse
-
-
-  
-
-
-
-**Properties**
-
-| Name | Type | Go type | Required | Default | Description | Example |
-|------|------|---------|:--------:| ------- |-------------|---------|
-| file_id | string| `string` |  | |  |  |
-| file_name | string| `string` |  | |  |  |
 
 

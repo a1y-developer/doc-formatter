@@ -181,4 +181,36 @@ func TestAuthHandler_Login(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 		mockClient.AssertExpectations(t)
 	})
+
+	t.Run("BadRequestValidationFailed", func(t *testing.T) {
+		r, _ := setupRouter()
+		reqBody := request.LoginRequest{
+			Email:    "", // Empty email should fail validation
+			Password: "password123",
+		}
+
+		w := httptest.NewRecorder()
+		req := testutil.NewJSONRequest(t, http.MethodPost, "/api/auth/login", reqBody)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("InternalServerError", func(t *testing.T) {
+		r, mockClient := setupRouter()
+		reqBody := request.LoginRequest{
+			Email:    "test@example.com",
+			Password: "password123",
+		}
+
+		mockClient.On("Login", mock.Anything, reqBody.Email, reqBody.Password).
+			Return(nil, errors.New("database error"))
+
+		w := httptest.NewRecorder()
+		req := testutil.NewJSONRequest(t, http.MethodPost, "/api/auth/login", reqBody)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		mockClient.AssertExpectations(t)
+	})
 }

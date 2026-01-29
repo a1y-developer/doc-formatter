@@ -24,6 +24,8 @@ func (d *DocumentModel) ToEntity() (*entity.Document, error) {
 		FileName:  d.FileName,
 		FileSize:  d.FileSize,
 		ObjectKey: d.ObjectKey,
+		CreateAt:  d.CreatedAt,
+		UpdateAt:  d.UpdatedAt,
 	}, nil
 }
 

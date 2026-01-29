@@ -12,24 +12,71 @@ import (
 )
 
 type mockStorageServiceClient struct {
-	lastCtx context.Context
-	lastReq *storagepb.UploadFileRequest
+	lastCtx       context.Context
+	lastUploadReq *storagepb.UploadFileRequest
+	lastListReq   *storagepb.ListFilesByUserIdRequest
 
-	resp *storagepb.UploadFileResponse
-	err  error
+	uploadResp *storagepb.UploadFileResponse
+	listResp   *storagepb.ListFilesByUserIdResponse
+	err        error
 }
 
 func (m *mockStorageServiceClient) UploadFile(ctx context.Context, in *storagepb.UploadFileRequest, opts ...grpc.CallOption) (*storagepb.UploadFileResponse, error) {
 	m.lastCtx = ctx
-	m.lastReq = in
-	return m.resp, m.err
+	m.lastUploadReq = in
+	return m.uploadResp, m.err
+}
+
+func (m *mockStorageServiceClient) ListFilesByUserId(ctx context.Context, in *storagepb.ListFilesByUserIdRequest, opts ...grpc.CallOption) (*storagepb.ListFilesByUserIdResponse, error) {
+	m.lastCtx = ctx
+	m.lastListReq = in
+	return m.listResp, m.err
+}
+
+func TestStorageClientListFilesByUserIdUsesTimeoutAndForwardsRequest(t *testing.T) {
+	mockClient := &mockStorageServiceClient{
+		listResp: &storagepb.ListFilesByUserIdResponse{
+			Documents: []*storagepb.Document{
+				{
+					Id:       "file-id-123",
+					UserId:   "user-123",
+					FileName: "test.txt",
+					FileSize: 123,
+				},
+			},
+		},
+	}
+
+	client := &storageClient{
+		client: mockClient,
+	}
+
+	ctx := context.Background()
+	req := &storagepb.ListFilesByUserIdRequest{
+		UserId: "user-123",
+	}
+
+	resp, err := client.ListFilesByUserId(ctx, req)
+	assert.NoError(t, err)
+	assert.Equal(t, mockClient.listResp, resp)
+	assert.Equal(t, req, mockClient.lastListReq)
+
+	deadline, ok := mockClient.lastCtx.Deadline()
+	assert.True(t, ok, "expected context to have a deadline")
+	remaining := time.Until(deadline)
+	assert.Greater(t, remaining, time.Duration(0))
+	assert.LessOrEqual(t, remaining, 30*time.Second)
 }
 
 func TestStorageClientUploadFileUsesTimeoutAndForwardsRequest(t *testing.T) {
 	mockClient := &mockStorageServiceClient{
-		resp: &storagepb.UploadFileResponse{
-			FileId:   "file-id",
-			FileName: "test.txt",
+		uploadResp: &storagepb.UploadFileResponse{
+			Document: &storagepb.Document{
+				Id:       "file-id-123",
+				UserId:   "user-123",
+				FileName: "test.txt",
+				FileSize: 123,
+			},
 		},
 	}
 
@@ -47,9 +94,9 @@ func TestStorageClientUploadFileUsesTimeoutAndForwardsRequest(t *testing.T) {
 
 	resp, err := client.UploadFile(ctx, req)
 	assert.NoError(t, err)
-	assert.Equal(t, mockClient.resp, resp)
+	assert.Equal(t, mockClient.uploadResp, resp)
 
-	assert.Equal(t, req, mockClient.lastReq)
+	assert.Equal(t, req, mockClient.lastUploadReq)
 
 	deadline, ok := mockClient.lastCtx.Deadline()
 	assert.True(t, ok, "expected context to have a deadline")
@@ -64,8 +111,10 @@ type testStorageServer struct {
 
 func (s *testStorageServer) UploadFile(ctx context.Context, req *storagepb.UploadFileRequest) (*storagepb.UploadFileResponse, error) {
 	return &storagepb.UploadFileResponse{
-		FileId:   "generated-id",
-		FileName: req.FileName,
+		Document: &storagepb.Document{
+			Id:       "generated-id",
+			FileName: req.FileName,
+		},
 	}, nil
 }
 
@@ -94,6 +143,6 @@ func TestNewStorageClientConnectsToServerAndUploads(t *testing.T) {
 	resp, err := client.UploadFile(ctx, req)
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
-	assert.Equal(t, "uploaded.txt", resp.FileName)
-	assert.NotEmpty(t, resp.FileId)
+	assert.Equal(t, "uploaded.txt", resp.Document.FileName)
+	assert.NotEmpty(t, resp.Document.Id)
 }

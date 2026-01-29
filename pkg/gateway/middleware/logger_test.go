@@ -3,20 +3,48 @@ package middleware
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/a1y/doc-formatter/pkg/gateway"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
 func TestInitLogger_Basic(t *testing.T) {
 	t.Parallel()
-	// InitLogger creates files, which might be hard to test cleanly in parallel without temporary directories.
-	// For basic unit testing, checking if it returns a logger is verified via usage.
-	// We can test InitLoggerBuffer more easily.
+
+	// Test with stdout
+	logger := InitLogger("", "test-logger")
+	require.NotNil(t, logger)
+
+	// Test with valid file path
+	tmpDir := t.TempDir()
+	logPath := filepath.Join(tmpDir, "test.log")
+	logger2 := InitLogger(logPath, "file-logger")
+	require.NotNil(t, logger2)
+
+	logger2.Info("test message")
+	logger2.Sync()
+
+	// Verify file exists
+	_, err := os.Stat(logPath)
+	require.NoError(t, err)
+
+	// Test with nested directory (auto-create)
+	nestedPath := filepath.Join(tmpDir, "logs", "nested", "app.log")
+	logger3 := InitLogger(nestedPath, "nested-logger")
+	require.NotNil(t, logger3)
+
+	logger3.Info("nested test")
+	logger3.Sync()
+
+	_, err = os.Stat(nestedPath)
+	require.NoError(t, err)
 }
 
 func TestInitLoggerBuffer_VerifiesBufferSink(t *testing.T) {
@@ -79,20 +107,4 @@ func TestAPILoggerMiddleware_RespectsExistingRequestID(t *testing.T) {
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status %d, got %d", http.StatusOK, w.Code)
 	}
-
-	// Middleware should set the header if it wasn't there?
-	// Wait, the logic says if requestID == "" then set it.
-	// If it exists, retrieve it. But does it write it back to header?
-	// c.Writer.Header().Set("X-Request-Id", requestID) is called if it was generated.
-	// The original test expected "untouched", implying if it came in, maybe it's preserved but not necessarily *re-set* if it's already there?
-	// Let's check middleware logic:
-	/*
-		requestID := req.Header.Get("X-Request-Id")
-		if requestID == "" {
-			requestID = uuid.New().String()
-			c.Writer.Header().Set("X-Request-Id", requestID)
-		}
-	*/
-	// If requestID is present, we don't explicitly set c.Writer.Header().Set("X-Request-Id", requestID).
-	// So checking w.Header().Get("X-Request-Id") should imply it might NOT be set in response headers by the middleware unless generated.
 }

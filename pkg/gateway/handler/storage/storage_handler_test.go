@@ -22,8 +22,9 @@ import (
 type mockStorageClient struct {
 	clientstorage.StorageClient
 
-	resp *storagepb.UploadFileResponse
-	err  error
+	resp     *storagepb.UploadFileResponse
+	listResp *storagepb.ListFilesByUserIdResponse
+	err      error
 
 	lastReq *storagepb.UploadFileRequest
 }
@@ -31,6 +32,10 @@ type mockStorageClient struct {
 func (m *mockStorageClient) UploadFile(_ context.Context, req *storagepb.UploadFileRequest) (*storagepb.UploadFileResponse, error) {
 	m.lastReq = req
 	return m.resp, m.err
+}
+
+func (m *mockStorageClient) ListFilesByUserId(_ context.Context, req *storagepb.ListFilesByUserIdRequest) (*storagepb.ListFilesByUserIdResponse, error) {
+	return m.listResp, m.err
 }
 
 func newTestHandler(t *testing.T, mockClient *mockStorageClient) *StorageHandler {
@@ -45,6 +50,7 @@ func newTestHandler(t *testing.T, mockClient *mockStorageClient) *StorageHandler
 func setupRouter(h *StorageHandler) *gin.Engine {
 	r := testutil.NewGinEngine()
 	r.POST("/api/v1/storage/upload", h.UploadFile)
+	r.GET("/api/v1/storage/files", h.ListFilesByUserId)
 	return r
 }
 
@@ -78,8 +84,12 @@ func createMultipartRequest(t *testing.T, userID string, includeFile bool) *http
 func TestStorageHandler_UploadFileSuccess(t *testing.T) {
 	mockClient := &mockStorageClient{
 		resp: &storagepb.UploadFileResponse{
-			FileId:   "file-id-123",
-			FileName: "test.txt",
+			Document: &storagepb.Document{
+				Id:       "file-id-123",
+				UserId:   "550e8400-e29b-41d4-a716-446655440000",
+				FileName: "test.txt",
+				FileSize: int64(len("hello world")),
+			},
 		},
 	}
 
@@ -100,7 +110,7 @@ func TestStorageHandler_UploadFileSuccess(t *testing.T) {
 
 	data, ok := respBody["data"].(map[string]interface{})
 	assert.True(t, ok)
-	assert.Equal(t, "file-id-123", data["file_id"])
+	assert.Equal(t, "file-id-123", data["id"])
 	assert.Equal(t, "test.txt", data["file_name"])
 
 	if assert.NotNil(t, mockClient.lastReq) {
@@ -160,4 +170,120 @@ func TestStorageHandler_UploadFileManagerError(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestStorageHandler_ListFilesByUserIdSuccess(t *testing.T) {
+	userID := "550e8400-e29b-41d4-a716-446655440000"
+	mockClient := &mockStorageClient{
+		listResp: &storagepb.ListFilesByUserIdResponse{
+			Documents: []*storagepb.Document{
+				{
+					Id:       "doc-1",
+					UserId:   userID,
+					FileName: "file1.pdf",
+					FileSize: 1024,
+				},
+				{
+					Id:       "doc-2",
+					UserId:   userID,
+					FileName: "file2.txt",
+					FileSize: 512,
+				},
+			},
+		},
+	}
+
+	h := newTestHandler(t, mockClient)
+	router := setupRouter(h)
+
+	req, _ := http.NewRequest(http.MethodGet, "/api/v1/storage/files?user_id="+userID, nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var respBody map[string]interface{}
+	err := json.Unmarshal(w.Body.Bytes(), &respBody)
+	assert.NoError(t, err)
+
+	data, ok := respBody["data"].([]interface{})
+	assert.True(t, ok)
+	assert.Len(t, data, 2)
+}
+
+func TestStorageHandler_ListFilesByUserIdInvalidUserID(t *testing.T) {
+	mockClient := &mockStorageClient{}
+	h := newTestHandler(t, mockClient)
+	router := setupRouter(h)
+
+	req, _ := http.NewRequest(http.MethodGet, "/api/v1/storage/files?user_id=invalid-uuid", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestStorageHandler_ListFilesByUserIdMissingUserID(t *testing.T) {
+	mockClient := &mockStorageClient{}
+	h := newTestHandler(t, mockClient)
+	router := setupRouter(h)
+
+	req, _ := http.NewRequest(http.MethodGet, "/api/v1/storage/files", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestStorageHandler_ListFilesByUserIdManagerError(t *testing.T) {
+	mockClient := &mockStorageClient{
+		err: errors.New("list failed"),
+	}
+
+	h := newTestHandler(t, mockClient)
+	router := setupRouter(h)
+
+	req, _ := http.NewRequest(http.MethodGet, "/api/v1/storage/files?user_id=550e8400-e29b-41d4-a716-446655440000", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestStorageHandler_UploadFileValidationError(t *testing.T) {
+	mockClient := &mockStorageClient{}
+	h := newTestHandler(t, mockClient)
+	router := setupRouter(h)
+
+	// Create multipart request without user_id (should fail validation)
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	// Add file but no user_id
+	fileWriter, err := writer.CreateFormFile("file", "test.txt")
+	assert.NoError(t, err)
+	_, err = io.Copy(fileWriter, bytes.NewReader([]byte("hello world")))
+	assert.NoError(t, err)
+	assert.NoError(t, writer.Close())
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/storage/upload", body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestStorageHandler_ListFilesByUserIdValidationError(t *testing.T) {
+	mockClient := &mockStorageClient{}
+	h := newTestHandler(t, mockClient)
+	router := setupRouter(h)
+
+	// Request without user_id should fail validation
+	req, _ := http.NewRequest(http.MethodGet, "/api/v1/storage/files?user_id=", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
 }

@@ -45,6 +45,21 @@ definitions:
     - email
     - password
     type: object
+  response.Document:
+    properties:
+      created_at:
+        type: integer
+      file_name:
+        type: string
+      file_size:
+        type: integer
+      id:
+        type: string
+      updated_at:
+        type: integer
+      user_id:
+        type: string
+    type: object
   response.LoginResponse:
     properties:
       access_token:
@@ -55,13 +70,6 @@ definitions:
   response.SignUpResponse:
     properties:
       user_id:
-        type: string
-    type: object
-  response.UploadFileResponse:
-    properties:
-      file_id:
-        type: string
-      file_name:
         type: string
     type: object
 info:
@@ -156,6 +164,50 @@ paths:
       summary: Signup
       tags:
       - Auth
+  /api/v1/storage/files:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of files uploaded by a specific user
+      operationId: ListFilesByUserId
+      parameters:
+      - description: User ID (UUID)
+        in: query
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.Document'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "429":
+          description: Too Many Requests
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: List files by user ID
+      tags:
+      - Storage
   /api/v1/storage/upload:
     post:
       consumes:
@@ -183,7 +235,7 @@ paths:
             - $ref: '#/definitions/handler.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/response.UploadFileResponse'
+                  $ref: '#/definitions/response.Document'
               type: object
         "400":
           description: Bad Request
