@@ -73,7 +73,7 @@ func (t *TokenClaim) ValidateToken(tokenString string) error {
 	}
 
 	// Derive public key from private key
-	publicKey := privateKey.PublicKey
+	publicKey := &privateKey.PublicKey
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// Validate the signing method
