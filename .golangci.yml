@@ -41,15 +41,15 @@ linters:
       - third_party$
       - builtin$
       - examples$
-formatters:
-  enable:
-    - gofumpt
-  settings:
-    gofumpt:
-      extra-rules: false
-  exclusions:
-    generated: lax
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
+# formatters:
+#   enable:
+#     - gofumpt
+#   settings:
+#     gofumpt:
+#       extra-rules: false
+#   exclusions:
+#     generated: lax
+#     paths:
+#       - third_party$
+#       - builtin$
+#       - examples$
