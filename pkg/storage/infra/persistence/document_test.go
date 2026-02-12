@@ -24,8 +24,8 @@ func TestDocumentRepository_Create(t *testing.T) {
 
 	userID := uuid.New()
 	doc := &entity.Document{
-		UserID:    userID,
-		FileName:  "test.txt",
+		OwnerID:   userID,
+		Name:      "test.txt",
 		FileSize:  123,
 		ObjectKey: userID.String() + "/test.txt",
 	}
@@ -68,8 +68,8 @@ func TestDocumentRepository_ListByUserID(t *testing.T) {
 	docs, err := repo.ListByUserID(ctx, userID)
 	assert.NoError(t, err)
 	assert.Len(t, docs, 1)
-	assert.Equal(t, userID, docs[0].UserID)
-	assert.Equal(t, "test.txt", docs[0].FileName)
+	assert.Equal(t, userID, docs[0].OwnerID)
+	assert.Equal(t, "test.txt", docs[0].Name)
 
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "documents" WHERE user_id = $1 AND "documents"."deleted_at" IS NULL`)).
 		WithArgs(sqlmock.AnyArg()).
@@ -113,7 +113,7 @@ func TestDocumentRepository_GetByID(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, doc)
 	assert.Equal(t, docID, doc.ID)
-	assert.Equal(t, userID, doc.UserID)
+	assert.Equal(t, userID, doc.OwnerID)
 
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "documents" WHERE id = $1 AND "documents"."deleted_at" IS NULL ORDER BY "documents"."id" LIMIT $2`)).
 		WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).
@@ -162,8 +162,8 @@ func TestDocumentRepository_SQLiteIntegration(t *testing.T) {
 
 	userID := uuid.New()
 	doc := &entity.Document{
-		UserID:    userID,
-		FileName:  "test.txt",
+		OwnerID:   userID,
+		Name:      "test.txt",
 		FileSize:  123,
 		ObjectKey: userID.String() + "/test.txt",
 	}
@@ -181,8 +181,8 @@ func TestDocumentRepository_SQLiteIntegration(t *testing.T) {
 	fetched, err := repo.GetByID(ctx, docs[0].ID)
 	require.NoError(t, err)
 	require.Equal(t, doc.ID, fetched.ID)
-	require.Equal(t, doc.UserID, fetched.UserID)
-	require.Equal(t, doc.FileName, fetched.FileName)
+	require.Equal(t, doc.OwnerID, fetched.OwnerID)
+	require.Equal(t, doc.Name, fetched.Name)
 
 	// Delete
 	require.NoError(t, repo.Delete(ctx, fetched.ID))

@@ -59,8 +59,8 @@ func TestDocumentManager_UploadDocument_PanicsWithNilS3Storage(t *testing.T) {
 
 	doc := &entity.Document{
 		ID:       uuid.New(),
-		UserID:   uuid.New(),
-		FileName: "file.txt",
+		OwnerID:  uuid.New(),
+		Name:     "file.txt",
 		FileSize: 10,
 	}
 
@@ -82,14 +82,14 @@ func TestDocumentManager_ListDocumentsByUserID_Success(t *testing.T) {
 	expectedDocs := []*entity.Document{
 		{
 			ID:       uuid.New(),
-			UserID:   userID,
-			FileName: "file1.txt",
+			OwnerID:  userID,
+			Name:     "file1.txt",
 			FileSize: 100,
 		},
 		{
 			ID:       uuid.New(),
-			UserID:   userID,
-			FileName: "file2.pdf",
+			OwnerID:  userID,
+			Name:     "file2.pdf",
 			FileSize: 200,
 		},
 	}
@@ -105,8 +105,8 @@ func TestDocumentManager_ListDocumentsByUserID_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, docs)
 	require.Len(t, docs, 2)
-	require.Equal(t, expectedDocs[0].FileName, docs[0].FileName)
-	require.Equal(t, expectedDocs[1].FileName, docs[1].FileName)
+	require.Equal(t, expectedDocs[0].Name, docs[0].Name)
+	require.Equal(t, expectedDocs[1].Name, docs[1].Name)
 }
 
 func TestDocumentManager_ListDocumentsByUserID_EmptyResult(t *testing.T) {

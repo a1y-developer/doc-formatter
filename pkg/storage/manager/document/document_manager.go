@@ -17,7 +17,7 @@ func (m *DocumentManager) UploadDocument(ctx context.Context, document *entity.D
 		return nil, err
 	}
 
-	createdEntity.ObjectKey = fmt.Sprintf("%s/%s", createdEntity.UserID.String(), createdEntity.FileName)
+	createdEntity.ObjectKey = fmt.Sprintf("%s/%s", createdEntity.OwnerID.String(), createdEntity.Name)
 
 	ok, err := m.s3Storage.PutObject(ctx, createdEntity.ObjectKey, file)
 	if err != nil {
@@ -33,6 +33,17 @@ func (m *DocumentManager) UploadDocument(ctx context.Context, document *entity.D
 	return &createdEntity, nil
 }
 
+func (m *DocumentManager) CreateDocument(ctx context.Context, document *entity.Document) (*entity.Document, error) {
+	if err := m.documentRepo.Create(ctx, document); err != nil {
+		return nil, err
+	}
+	return document, nil
+}
+
 func (m *DocumentManager) ListDocumentsByUserID(ctx context.Context, userID uuid.UUID) ([]*entity.Document, error) {
 	return m.documentRepo.ListByUserID(ctx, userID)
+}
+
+func (m *DocumentManager) GetDocumentByUserID(ctx context.Context, userID uuid.UUID, fileID uuid.UUID) (*entity.Document, error) {
+	return m.documentRepo.GetByUserID(ctx, userID, fileID)
 }

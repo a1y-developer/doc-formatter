@@ -9,11 +9,35 @@ import (
 	"github.com/google/uuid"
 )
 
+func (h *Handler) InitiateUploadDocument(ctx context.Context, req *storagepb.InitiateUploadDocumentRequest) (*storagepb.InitiateUploadDocumentResponse, error) {
+	// Implementation for initiating upload (e.g., generating pre-signed URL) can be added here.
+	docEntity := entity.Document{
+		OwnerID:  uuid.MustParse(req.OwnerId),
+		Name:     req.Name,
+		Size:     req.Size,
+		MineType: req.MimeType,
+	}
+	if req.ParentId == "" {
+		folder, err := h.folderManager.CreateFolder(ctx, &entity.Folder{
+			OwnerID: uuid.MustParse(req.OwnerId),
+		})
+		if err != nil {
+			return nil, err
+		}
+		docEntity.ParentID = folder.ID
+	} else {
+		docEntity.ParentID = uuid.MustParse(req.ParentId)
+	}
+	document, err := h.documentManager.CreateDocument(ctx, &docEntity)
+
+	return &storagepb.InitiateUploadDocumentResponse{}, nil
+}
+
 func (h *Handler) UploadFile(ctx context.Context, req *storagepb.UploadFileRequest) (*storagepb.UploadFileResponse, error) {
 	reader := bytes.NewReader(req.Content)
 	documentEntity := entity.Document{
-		UserID:   uuid.MustParse(req.UserId),
-		FileName: req.FileName,
+		OwnerID:  uuid.MustParse(req.UserId),
+		Name:     req.FileName,
 		FileSize: req.FileSize,
 	}
 	documentResponse, err := h.documentManager.UploadDocument(ctx, &documentEntity, reader)
@@ -23,8 +47,8 @@ func (h *Handler) UploadFile(ctx context.Context, req *storagepb.UploadFileReque
 	return &storagepb.UploadFileResponse{
 		Document: &storagepb.Document{
 			Id:        documentResponse.ID.String(),
-			UserId:    documentResponse.UserID.String(),
-			FileName:  documentResponse.FileName,
+			UserId:    documentResponse.OwnerID.String(),
+			FileName:  documentResponse.Name,
 			FileSize:  documentResponse.FileSize,
 			ObjectKey: documentResponse.ObjectKey,
 			CreatedAt: documentResponse.CreateAt.Unix(),
@@ -44,8 +68,8 @@ func (h *Handler) ListFilesByUserId(ctx context.Context, req *storagepb.ListFile
 	for i, doc := range documents {
 		pbDocuments[i] = &storagepb.Document{
 			Id:        doc.ID.String(),
-			UserId:    doc.UserID.String(),
-			FileName:  doc.FileName,
+			UserId:    doc.OwnerID.String(),
+			FileName:  doc.Name,
 			FileSize:  doc.FileSize,
 			ObjectKey: doc.ObjectKey,
 			CreatedAt: doc.CreateAt.Unix(),

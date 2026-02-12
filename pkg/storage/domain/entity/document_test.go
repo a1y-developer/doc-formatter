@@ -12,8 +12,8 @@ func TestDocument_Validate_Success(t *testing.T) {
 
 	d := &Document{
 		ID:        uuid.New(),
-		UserID:    uuid.New(),
-		FileName:  "file.txt",
+		OwnerID:   uuid.New(),
+		Name:      "file.txt",
 		FileSize:  123,
 		ObjectKey: "user/file.txt",
 	}
@@ -25,7 +25,7 @@ func TestDocument_Validate_MissingUserID(t *testing.T) {
 	t.Parallel()
 
 	d := &Document{
-		FileName:  "file.txt",
+		Name:      "file.txt",
 		ObjectKey: "file.txt",
 	}
 
@@ -38,7 +38,7 @@ func TestDocument_Validate_MissingFileName(t *testing.T) {
 	t.Parallel()
 
 	d := &Document{
-		UserID:    uuid.New(),
+		OwnerID:   uuid.New(),
 		ObjectKey: "file.txt",
 	}
 
@@ -51,8 +51,8 @@ func TestDocument_Validate_MissingObjectKey(t *testing.T) {
 	t.Parallel()
 
 	d := &Document{
-		UserID:   uuid.New(),
-		FileName: "file.txt",
+		OwnerID: uuid.New(),
+		Name:    "file.txt",
 	}
 
 	err := d.Validate()

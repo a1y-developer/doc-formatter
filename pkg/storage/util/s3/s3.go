@@ -74,3 +74,23 @@ func (s *S3Storage) DeleteObject(ctx context.Context, objectKey string) (bool, e
 	}
 	return true, nil
 }
+
+// GeneratePresignedPutObjectURL Generate Presigned URL
+func (s *S3Storage) GeneratePresignedPutObjectURL(ctx context.Context, objectKey string, mimeType string, expireDuration time.Duration) (string, error) {
+	presignClient := s3.NewPresignClient(s.s3)
+	request, err := presignClient.PresignPostObject(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String(s.bucket),
+		Key:         aws.String(objectKey),
+		ContentType: aws.String(mimeType),
+	}, func(options *s3.PresignPostOptions) {
+		options.Expires = expireDuration
+		options.Conditions = []interface{}{
+			map[string]interface{}{"Content-Type": mimeType},
+			[]interface{}{"content-length-range", 1, 104857600},
+		}
+	})
+	if err != nil {
+		return "", errors.New("failed to create presign client for object: " + objectKey + " in bucket: " + s.bucket + " with error: " + err.Error())
+	}
+	return request.URL, nil
+}

@@ -6,38 +6,54 @@ option go_package = "github.com/a1y/doc-formatter/api/grpc/storage/v1;storagepb"
 
 message Document {
   string id = 1;
-  string user_id = 2;
-  string file_name = 3;
-  int64 file_size = 4;
-  string object_key = 5;
+  string owner_id = 2;
+  string parent_id = 3;
+  string name = 4;
+  int64 size = 5;
+  string mime_type = 6;
+  string object_key = 7;
+  string status = 8;
+  string metadata_json = 9;
+  int64 created_at = 10;
+  int64 updated_at = 11;
+}
+
+message Folder {
+  string id = 1;
+  string owner_id = 2;
+  string parent_id = 3;
+  string name = 4;
+  repeated string path_tokens = 5;
   int64 created_at = 6;
   int64 updated_at = 7;
 }
 
-// UPLOAD FILE
-message UploadFileRequest {
-  string user_id = 1;
-  string file_name = 2;
-  int64 file_size = 3;
-  bytes content = 4;
+message InitiateUploadDocumentRequest {
+  string owner_id = 1;
+  string parent_id = 2;
+  string name = 3;
+  int64 size = 4;
+  string mime_type = 5;
 }
 
-message UploadFileResponse {
+message InitiateUploadDocumentResponse {
   Document document = 1;
+  string upload_url = 2;
+  map<string, string> form_fields = 3;
+  int64 expires_at = 4;
 }
 
-// LIST FILES BY user_id
-
-message ListFilesByUserIdRequest {
-  string user_id = 1;
+message CompleteUploadDocumentRequest {
+  string document_id = 1;
+  string etag = 2;
 }
 
-message ListFilesByUserIdResponse {
-  repeated Document documents = 1;
+message CompleteUploadDocumentResponse {
+  Document document = 1;
 }
 
 // STORAGE SERVICE DEFINITION
 service StorageService {
-  rpc UploadFile (UploadFileRequest) returns (UploadFileResponse);
-  rpc ListFilesByUserId (ListFilesByUserIdRequest) returns (ListFilesByUserIdResponse);
+  rpc InitiateUploadDocument (InitiateUploadDocumentRequest) returns (InitiateUploadDocumentResponse);
+  rpc CompleteUploadDocument (CompleteUploadDocumentRequest) returns (CompleteUploadDocumentResponse);
 }

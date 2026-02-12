@@ -24,12 +24,16 @@ const (
 type Document struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	FileName      string                 `protobuf:"bytes,3,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
-	FileSize      int64                  `protobuf:"varint,4,opt,name=file_size,json=fileSize,proto3" json:"file_size,omitempty"`
-	ObjectKey     string                 `protobuf:"bytes,5,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
-	CreatedAt     int64                  `protobuf:"varint,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     int64                  `protobuf:"varint,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	OwnerId       string                 `protobuf:"bytes,2,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
+	ParentId      string                 `protobuf:"bytes,3,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
+	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	Size          int64                  `protobuf:"varint,5,opt,name=size,proto3" json:"size,omitempty"`
+	MimeType      string                 `protobuf:"bytes,6,opt,name=mime_type,json=mimeType,proto3" json:"mime_type,omitempty"`
+	ObjectKey     string                 `protobuf:"bytes,7,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
+	Status        string                 `protobuf:"bytes,8,opt,name=status,proto3" json:"status,omitempty"`
+	MetadataJson  string                 `protobuf:"bytes,9,opt,name=metadata_json,json=metadataJson,proto3" json:"metadata_json,omitempty"`
+	CreatedAt     int64                  `protobuf:"varint,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     int64                  `protobuf:"varint,11,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -71,30 +75,58 @@ func (x *Document) GetId() string {
 	return ""
 }
 
-func (x *Document) GetUserId() string {
+func (x *Document) GetOwnerId() string {
 	if x != nil {
-		return x.UserId
+		return x.OwnerId
 	}
 	return ""
 }
 
-func (x *Document) GetFileName() string {
+func (x *Document) GetParentId() string {
 	if x != nil {
-		return x.FileName
+		return x.ParentId
 	}
 	return ""
 }
 
-func (x *Document) GetFileSize() int64 {
+func (x *Document) GetName() string {
 	if x != nil {
-		return x.FileSize
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Document) GetSize() int64 {
+	if x != nil {
+		return x.Size
 	}
 	return 0
+}
+
+func (x *Document) GetMimeType() string {
+	if x != nil {
+		return x.MimeType
+	}
+	return ""
 }
 
 func (x *Document) GetObjectKey() string {
 	if x != nil {
 		return x.ObjectKey
+	}
+	return ""
+}
+
+func (x *Document) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *Document) GetMetadataJson() string {
+	if x != nil {
+		return x.MetadataJson
 	}
 	return ""
 }
@@ -113,31 +145,33 @@ func (x *Document) GetUpdatedAt() int64 {
 	return 0
 }
 
-// UPLOAD FILE
-type UploadFileRequest struct {
+type Folder struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	FileName      string                 `protobuf:"bytes,2,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
-	FileSize      int64                  `protobuf:"varint,3,opt,name=file_size,json=fileSize,proto3" json:"file_size,omitempty"`
-	Content       []byte                 `protobuf:"bytes,4,opt,name=content,proto3" json:"content,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OwnerId       string                 `protobuf:"bytes,2,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
+	ParentId      string                 `protobuf:"bytes,3,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
+	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	PathTokens    []string               `protobuf:"bytes,5,rep,name=path_tokens,json=pathTokens,proto3" json:"path_tokens,omitempty"`
+	CreatedAt     int64                  `protobuf:"varint,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     int64                  `protobuf:"varint,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UploadFileRequest) Reset() {
-	*x = UploadFileRequest{}
+func (x *Folder) Reset() {
+	*x = Folder{}
 	mi := &file_api_grpc_storage_v1_storage_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UploadFileRequest) String() string {
+func (x *Folder) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UploadFileRequest) ProtoMessage() {}
+func (*Folder) ProtoMessage() {}
 
-func (x *UploadFileRequest) ProtoReflect() protoreflect.Message {
+func (x *Folder) ProtoReflect() protoreflect.Message {
 	mi := &file_api_grpc_storage_v1_storage_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -149,60 +183,85 @@ func (x *UploadFileRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UploadFileRequest.ProtoReflect.Descriptor instead.
-func (*UploadFileRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use Folder.ProtoReflect.Descriptor instead.
+func (*Folder) Descriptor() ([]byte, []int) {
 	return file_api_grpc_storage_v1_storage_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *UploadFileRequest) GetUserId() string {
+func (x *Folder) GetId() string {
 	if x != nil {
-		return x.UserId
+		return x.Id
 	}
 	return ""
 }
 
-func (x *UploadFileRequest) GetFileName() string {
+func (x *Folder) GetOwnerId() string {
 	if x != nil {
-		return x.FileName
+		return x.OwnerId
 	}
 	return ""
 }
 
-func (x *UploadFileRequest) GetFileSize() int64 {
+func (x *Folder) GetParentId() string {
 	if x != nil {
-		return x.FileSize
+		return x.ParentId
 	}
-	return 0
+	return ""
 }
 
-func (x *UploadFileRequest) GetContent() []byte {
+func (x *Folder) GetName() string {
 	if x != nil {
-		return x.Content
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Folder) GetPathTokens() []string {
+	if x != nil {
+		return x.PathTokens
 	}
 	return nil
 }
 
-type UploadFileResponse struct {
+func (x *Folder) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *Folder) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
+type InitiateUploadDocumentRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Document      *Document              `protobuf:"bytes,1,opt,name=document,proto3" json:"document,omitempty"`
+	OwnerId       string                 `protobuf:"bytes,1,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
+	ParentId      string                 `protobuf:"bytes,2,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Size          int64                  `protobuf:"varint,4,opt,name=size,proto3" json:"size,omitempty"`
+	MimeType      string                 `protobuf:"bytes,5,opt,name=mime_type,json=mimeType,proto3" json:"mime_type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UploadFileResponse) Reset() {
-	*x = UploadFileResponse{}
+func (x *InitiateUploadDocumentRequest) Reset() {
+	*x = InitiateUploadDocumentRequest{}
 	mi := &file_api_grpc_storage_v1_storage_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UploadFileResponse) String() string {
+func (x *InitiateUploadDocumentRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UploadFileResponse) ProtoMessage() {}
+func (*InitiateUploadDocumentRequest) ProtoMessage() {}
 
-func (x *UploadFileResponse) ProtoReflect() protoreflect.Message {
+func (x *InitiateUploadDocumentRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_api_grpc_storage_v1_storage_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -214,83 +273,136 @@ func (x *UploadFileResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UploadFileResponse.ProtoReflect.Descriptor instead.
-func (*UploadFileResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use InitiateUploadDocumentRequest.ProtoReflect.Descriptor instead.
+func (*InitiateUploadDocumentRequest) Descriptor() ([]byte, []int) {
 	return file_api_grpc_storage_v1_storage_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *UploadFileResponse) GetDocument() *Document {
+func (x *InitiateUploadDocumentRequest) GetOwnerId() string {
+	if x != nil {
+		return x.OwnerId
+	}
+	return ""
+}
+
+func (x *InitiateUploadDocumentRequest) GetParentId() string {
+	if x != nil {
+		return x.ParentId
+	}
+	return ""
+}
+
+func (x *InitiateUploadDocumentRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *InitiateUploadDocumentRequest) GetSize() int64 {
+	if x != nil {
+		return x.Size
+	}
+	return 0
+}
+
+func (x *InitiateUploadDocumentRequest) GetMimeType() string {
+	if x != nil {
+		return x.MimeType
+	}
+	return ""
+}
+
+type InitiateUploadDocumentResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Document      *Document              `protobuf:"bytes,1,opt,name=document,proto3" json:"document,omitempty"`
+	UploadUrl     string                 `protobuf:"bytes,2,opt,name=upload_url,json=uploadUrl,proto3" json:"upload_url,omitempty"`
+	FormFields    map[string]string      `protobuf:"bytes,3,rep,name=form_fields,json=formFields,proto3" json:"form_fields,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	ExpiresAt     int64                  `protobuf:"varint,4,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InitiateUploadDocumentResponse) Reset() {
+	*x = InitiateUploadDocumentResponse{}
+	mi := &file_api_grpc_storage_v1_storage_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InitiateUploadDocumentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InitiateUploadDocumentResponse) ProtoMessage() {}
+
+func (x *InitiateUploadDocumentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_grpc_storage_v1_storage_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InitiateUploadDocumentResponse.ProtoReflect.Descriptor instead.
+func (*InitiateUploadDocumentResponse) Descriptor() ([]byte, []int) {
+	return file_api_grpc_storage_v1_storage_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *InitiateUploadDocumentResponse) GetDocument() *Document {
 	if x != nil {
 		return x.Document
 	}
 	return nil
 }
 
-type ListFilesByUserIdRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListFilesByUserIdRequest) Reset() {
-	*x = ListFilesByUserIdRequest{}
-	mi := &file_api_grpc_storage_v1_storage_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListFilesByUserIdRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListFilesByUserIdRequest) ProtoMessage() {}
-
-func (x *ListFilesByUserIdRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_grpc_storage_v1_storage_proto_msgTypes[3]
+func (x *InitiateUploadDocumentResponse) GetUploadUrl() string {
 	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListFilesByUserIdRequest.ProtoReflect.Descriptor instead.
-func (*ListFilesByUserIdRequest) Descriptor() ([]byte, []int) {
-	return file_api_grpc_storage_v1_storage_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *ListFilesByUserIdRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
+		return x.UploadUrl
 	}
 	return ""
 }
 
-type ListFilesByUserIdResponse struct {
+func (x *InitiateUploadDocumentResponse) GetFormFields() map[string]string {
+	if x != nil {
+		return x.FormFields
+	}
+	return nil
+}
+
+func (x *InitiateUploadDocumentResponse) GetExpiresAt() int64 {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return 0
+}
+
+type CompleteUploadDocumentRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Documents     []*Document            `protobuf:"bytes,1,rep,name=documents,proto3" json:"documents,omitempty"`
+	DocumentId    string                 `protobuf:"bytes,1,opt,name=document_id,json=documentId,proto3" json:"document_id,omitempty"`
+	Etag          string                 `protobuf:"bytes,2,opt,name=etag,proto3" json:"etag,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ListFilesByUserIdResponse) Reset() {
-	*x = ListFilesByUserIdResponse{}
+func (x *CompleteUploadDocumentRequest) Reset() {
+	*x = CompleteUploadDocumentRequest{}
 	mi := &file_api_grpc_storage_v1_storage_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListFilesByUserIdResponse) String() string {
+func (x *CompleteUploadDocumentRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListFilesByUserIdResponse) ProtoMessage() {}
+func (*CompleteUploadDocumentRequest) ProtoMessage() {}
 
-func (x *ListFilesByUserIdResponse) ProtoReflect() protoreflect.Message {
+func (x *CompleteUploadDocumentRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_api_grpc_storage_v1_storage_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -302,14 +414,65 @@ func (x *ListFilesByUserIdResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListFilesByUserIdResponse.ProtoReflect.Descriptor instead.
-func (*ListFilesByUserIdResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use CompleteUploadDocumentRequest.ProtoReflect.Descriptor instead.
+func (*CompleteUploadDocumentRequest) Descriptor() ([]byte, []int) {
 	return file_api_grpc_storage_v1_storage_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *ListFilesByUserIdResponse) GetDocuments() []*Document {
+func (x *CompleteUploadDocumentRequest) GetDocumentId() string {
 	if x != nil {
-		return x.Documents
+		return x.DocumentId
+	}
+	return ""
+}
+
+func (x *CompleteUploadDocumentRequest) GetEtag() string {
+	if x != nil {
+		return x.Etag
+	}
+	return ""
+}
+
+type CompleteUploadDocumentResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Document      *Document              `protobuf:"bytes,1,opt,name=document,proto3" json:"document,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompleteUploadDocumentResponse) Reset() {
+	*x = CompleteUploadDocumentResponse{}
+	mi := &file_api_grpc_storage_v1_storage_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteUploadDocumentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteUploadDocumentResponse) ProtoMessage() {}
+
+func (x *CompleteUploadDocumentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_grpc_storage_v1_storage_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteUploadDocumentResponse.ProtoReflect.Descriptor instead.
+func (*CompleteUploadDocumentResponse) Descriptor() ([]byte, []int) {
+	return file_api_grpc_storage_v1_storage_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *CompleteUploadDocumentResponse) GetDocument() *Document {
+	if x != nil {
+		return x.Document
 	}
 	return nil
 }
@@ -318,33 +481,60 @@ var File_api_grpc_storage_v1_storage_proto protoreflect.FileDescriptor
 
 const file_api_grpc_storage_v1_storage_proto_rawDesc = "" +
 	"\n" +
-	"!api/grpc/storage/v1/storage.proto\x12\astorage\"\xca\x01\n" +
+	"!api/grpc/storage/v1/storage.proto\x12\astorage\"\xb1\x02\n" +
 	"\bDocument\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x1b\n" +
-	"\tfile_name\x18\x03 \x01(\tR\bfileName\x12\x1b\n" +
-	"\tfile_size\x18\x04 \x01(\x03R\bfileSize\x12\x1d\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\bowner_id\x18\x02 \x01(\tR\aownerId\x12\x1b\n" +
+	"\tparent_id\x18\x03 \x01(\tR\bparentId\x12\x12\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x12\x12\n" +
+	"\x04size\x18\x05 \x01(\x03R\x04size\x12\x1b\n" +
+	"\tmime_type\x18\x06 \x01(\tR\bmimeType\x12\x1d\n" +
 	"\n" +
-	"object_key\x18\x05 \x01(\tR\tobjectKey\x12\x1d\n" +
+	"object_key\x18\a \x01(\tR\tobjectKey\x12\x16\n" +
+	"\x06status\x18\b \x01(\tR\x06status\x12#\n" +
+	"\rmetadata_json\x18\t \x01(\tR\fmetadataJson\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\n" +
+	" \x01(\x03R\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\v \x01(\x03R\tupdatedAt\"\xc3\x01\n" +
+	"\x06Folder\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\bowner_id\x18\x02 \x01(\tR\aownerId\x12\x1b\n" +
+	"\tparent_id\x18\x03 \x01(\tR\bparentId\x12\x12\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x12\x1f\n" +
+	"\vpath_tokens\x18\x05 \x03(\tR\n" +
+	"pathTokens\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\x06 \x01(\x03R\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\a \x01(\x03R\tupdatedAt\"\x80\x01\n" +
-	"\x11UploadFileRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n" +
-	"\tfile_name\x18\x02 \x01(\tR\bfileName\x12\x1b\n" +
-	"\tfile_size\x18\x03 \x01(\x03R\bfileSize\x12\x18\n" +
-	"\acontent\x18\x04 \x01(\fR\acontent\"C\n" +
-	"\x12UploadFileResponse\x12-\n" +
-	"\bdocument\x18\x01 \x01(\v2\x11.storage.DocumentR\bdocument\"3\n" +
-	"\x18ListFilesByUserIdRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\"L\n" +
-	"\x19ListFilesByUserIdResponse\x12/\n" +
-	"\tdocuments\x18\x01 \x03(\v2\x11.storage.DocumentR\tdocuments2\xb3\x01\n" +
-	"\x0eStorageService\x12E\n" +
+	"updated_at\x18\a \x01(\x03R\tupdatedAt\"\x9c\x01\n" +
+	"\x1dInitiateUploadDocumentRequest\x12\x19\n" +
+	"\bowner_id\x18\x01 \x01(\tR\aownerId\x12\x1b\n" +
+	"\tparent_id\x18\x02 \x01(\tR\bparentId\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x12\n" +
+	"\x04size\x18\x04 \x01(\x03R\x04size\x12\x1b\n" +
+	"\tmime_type\x18\x05 \x01(\tR\bmimeType\"\xa6\x02\n" +
+	"\x1eInitiateUploadDocumentResponse\x12-\n" +
+	"\bdocument\x18\x01 \x01(\v2\x11.storage.DocumentR\bdocument\x12\x1d\n" +
 	"\n" +
-	"UploadFile\x12\x1a.storage.UploadFileRequest\x1a\x1b.storage.UploadFileResponse\x12Z\n" +
-	"\x11ListFilesByUserId\x12!.storage.ListFilesByUserIdRequest\x1a\".storage.ListFilesByUserIdResponseB<Z:github.com/a1y/doc-formatter/api/grpc/storage/v1;storagepbb\x06proto3"
+	"upload_url\x18\x02 \x01(\tR\tuploadUrl\x12X\n" +
+	"\vform_fields\x18\x03 \x03(\v27.storage.InitiateUploadDocumentResponse.FormFieldsEntryR\n" +
+	"formFields\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\x04 \x01(\x03R\texpiresAt\x1a=\n" +
+	"\x0fFormFieldsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"T\n" +
+	"\x1dCompleteUploadDocumentRequest\x12\x1f\n" +
+	"\vdocument_id\x18\x01 \x01(\tR\n" +
+	"documentId\x12\x12\n" +
+	"\x04etag\x18\x02 \x01(\tR\x04etag\"O\n" +
+	"\x1eCompleteUploadDocumentResponse\x12-\n" +
+	"\bdocument\x18\x01 \x01(\v2\x11.storage.DocumentR\bdocument2\xe6\x01\n" +
+	"\x0eStorageService\x12i\n" +
+	"\x16InitiateUploadDocument\x12&.storage.InitiateUploadDocumentRequest\x1a'.storage.InitiateUploadDocumentResponse\x12i\n" +
+	"\x16CompleteUploadDocument\x12&.storage.CompleteUploadDocumentRequest\x1a'.storage.CompleteUploadDocumentResponseB<Z:github.com/a1y/doc-formatter/api/grpc/storage/v1;storagepbb\x06proto3"
 
 var (
 	file_api_grpc_storage_v1_storage_proto_rawDescOnce sync.Once
@@ -358,26 +548,29 @@ func file_api_grpc_storage_v1_storage_proto_rawDescGZIP() []byte {
 	return file_api_grpc_storage_v1_storage_proto_rawDescData
 }
 
-var file_api_grpc_storage_v1_storage_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_api_grpc_storage_v1_storage_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_api_grpc_storage_v1_storage_proto_goTypes = []any{
-	(*Document)(nil),                  // 0: storage.Document
-	(*UploadFileRequest)(nil),         // 1: storage.UploadFileRequest
-	(*UploadFileResponse)(nil),        // 2: storage.UploadFileResponse
-	(*ListFilesByUserIdRequest)(nil),  // 3: storage.ListFilesByUserIdRequest
-	(*ListFilesByUserIdResponse)(nil), // 4: storage.ListFilesByUserIdResponse
+	(*Document)(nil),                       // 0: storage.Document
+	(*Folder)(nil),                         // 1: storage.Folder
+	(*InitiateUploadDocumentRequest)(nil),  // 2: storage.InitiateUploadDocumentRequest
+	(*InitiateUploadDocumentResponse)(nil), // 3: storage.InitiateUploadDocumentResponse
+	(*CompleteUploadDocumentRequest)(nil),  // 4: storage.CompleteUploadDocumentRequest
+	(*CompleteUploadDocumentResponse)(nil), // 5: storage.CompleteUploadDocumentResponse
+	nil,                                    // 6: storage.InitiateUploadDocumentResponse.FormFieldsEntry
 }
 var file_api_grpc_storage_v1_storage_proto_depIdxs = []int32{
-	0, // 0: storage.UploadFileResponse.document:type_name -> storage.Document
-	0, // 1: storage.ListFilesByUserIdResponse.documents:type_name -> storage.Document
-	1, // 2: storage.StorageService.UploadFile:input_type -> storage.UploadFileRequest
-	3, // 3: storage.StorageService.ListFilesByUserId:input_type -> storage.ListFilesByUserIdRequest
-	2, // 4: storage.StorageService.UploadFile:output_type -> storage.UploadFileResponse
-	4, // 5: storage.StorageService.ListFilesByUserId:output_type -> storage.ListFilesByUserIdResponse
-	4, // [4:6] is the sub-list for method output_type
-	2, // [2:4] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	0, // 0: storage.InitiateUploadDocumentResponse.document:type_name -> storage.Document
+	6, // 1: storage.InitiateUploadDocumentResponse.form_fields:type_name -> storage.InitiateUploadDocumentResponse.FormFieldsEntry
+	0, // 2: storage.CompleteUploadDocumentResponse.document:type_name -> storage.Document
+	2, // 3: storage.StorageService.InitiateUploadDocument:input_type -> storage.InitiateUploadDocumentRequest
+	4, // 4: storage.StorageService.CompleteUploadDocument:input_type -> storage.CompleteUploadDocumentRequest
+	3, // 5: storage.StorageService.InitiateUploadDocument:output_type -> storage.InitiateUploadDocumentResponse
+	5, // 6: storage.StorageService.CompleteUploadDocument:output_type -> storage.CompleteUploadDocumentResponse
+	5, // [5:7] is the sub-list for method output_type
+	3, // [3:5] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_api_grpc_storage_v1_storage_proto_init() }
@@ -391,7 +584,7 @@ func file_api_grpc_storage_v1_storage_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_grpc_storage_v1_storage_proto_rawDesc), len(file_api_grpc_storage_v1_storage_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

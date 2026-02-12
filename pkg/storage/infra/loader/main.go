@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	stmts, err := gormschema.New("postgres").Load(&persistence.DocumentModel{})
+	stmts, err := gormschema.New("postgres").Load(&persistence.DocumentModel{}, &persistence.FolderModel{})
 	if err != nil {
 		logrus.Errorf("failed to load gorm schema: %v\n", err)
 		os.Exit(1)

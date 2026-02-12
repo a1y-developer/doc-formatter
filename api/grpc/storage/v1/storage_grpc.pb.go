@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	StorageService_UploadFile_FullMethodName        = "/storage.StorageService/UploadFile"
-	StorageService_ListFilesByUserId_FullMethodName = "/storage.StorageService/ListFilesByUserId"
+	StorageService_InitiateUploadDocument_FullMethodName = "/storage.StorageService/InitiateUploadDocument"
+	StorageService_CompleteUploadDocument_FullMethodName = "/storage.StorageService/CompleteUploadDocument"
 )
 
 // StorageServiceClient is the client API for StorageService service.
@@ -29,8 +29,8 @@ const (
 //
 // STORAGE SERVICE DEFINITION
 type StorageServiceClient interface {
-	UploadFile(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*UploadFileResponse, error)
-	ListFilesByUserId(ctx context.Context, in *ListFilesByUserIdRequest, opts ...grpc.CallOption) (*ListFilesByUserIdResponse, error)
+	InitiateUploadDocument(ctx context.Context, in *InitiateUploadDocumentRequest, opts ...grpc.CallOption) (*InitiateUploadDocumentResponse, error)
+	CompleteUploadDocument(ctx context.Context, in *CompleteUploadDocumentRequest, opts ...grpc.CallOption) (*CompleteUploadDocumentResponse, error)
 }
 
 type storageServiceClient struct {
@@ -41,20 +41,20 @@ func NewStorageServiceClient(cc grpc.ClientConnInterface) StorageServiceClient {
 	return &storageServiceClient{cc}
 }
 
-func (c *storageServiceClient) UploadFile(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*UploadFileResponse, error) {
+func (c *storageServiceClient) InitiateUploadDocument(ctx context.Context, in *InitiateUploadDocumentRequest, opts ...grpc.CallOption) (*InitiateUploadDocumentResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UploadFileResponse)
-	err := c.cc.Invoke(ctx, StorageService_UploadFile_FullMethodName, in, out, cOpts...)
+	out := new(InitiateUploadDocumentResponse)
+	err := c.cc.Invoke(ctx, StorageService_InitiateUploadDocument_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *storageServiceClient) ListFilesByUserId(ctx context.Context, in *ListFilesByUserIdRequest, opts ...grpc.CallOption) (*ListFilesByUserIdResponse, error) {
+func (c *storageServiceClient) CompleteUploadDocument(ctx context.Context, in *CompleteUploadDocumentRequest, opts ...grpc.CallOption) (*CompleteUploadDocumentResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListFilesByUserIdResponse)
-	err := c.cc.Invoke(ctx, StorageService_ListFilesByUserId_FullMethodName, in, out, cOpts...)
+	out := new(CompleteUploadDocumentResponse)
+	err := c.cc.Invoke(ctx, StorageService_CompleteUploadDocument_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -67,8 +67,8 @@ func (c *storageServiceClient) ListFilesByUserId(ctx context.Context, in *ListFi
 //
 // STORAGE SERVICE DEFINITION
 type StorageServiceServer interface {
-	UploadFile(context.Context, *UploadFileRequest) (*UploadFileResponse, error)
-	ListFilesByUserId(context.Context, *ListFilesByUserIdRequest) (*ListFilesByUserIdResponse, error)
+	InitiateUploadDocument(context.Context, *InitiateUploadDocumentRequest) (*InitiateUploadDocumentResponse, error)
+	CompleteUploadDocument(context.Context, *CompleteUploadDocumentRequest) (*CompleteUploadDocumentResponse, error)
 	mustEmbedUnimplementedStorageServiceServer()
 }
 
@@ -79,11 +79,11 @@ type StorageServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedStorageServiceServer struct{}
 
-func (UnimplementedStorageServiceServer) UploadFile(context.Context, *UploadFileRequest) (*UploadFileResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method UploadFile not implemented")
+func (UnimplementedStorageServiceServer) InitiateUploadDocument(context.Context, *InitiateUploadDocumentRequest) (*InitiateUploadDocumentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method InitiateUploadDocument not implemented")
 }
-func (UnimplementedStorageServiceServer) ListFilesByUserId(context.Context, *ListFilesByUserIdRequest) (*ListFilesByUserIdResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListFilesByUserId not implemented")
+func (UnimplementedStorageServiceServer) CompleteUploadDocument(context.Context, *CompleteUploadDocumentRequest) (*CompleteUploadDocumentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CompleteUploadDocument not implemented")
 }
 func (UnimplementedStorageServiceServer) mustEmbedUnimplementedStorageServiceServer() {}
 func (UnimplementedStorageServiceServer) testEmbeddedByValue()                        {}
@@ -106,38 +106,38 @@ func RegisterStorageServiceServer(s grpc.ServiceRegistrar, srv StorageServiceSer
 	s.RegisterService(&StorageService_ServiceDesc, srv)
 }
 
-func _StorageService_UploadFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UploadFileRequest)
+func _StorageService_InitiateUploadDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InitiateUploadDocumentRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(StorageServiceServer).UploadFile(ctx, in)
+		return srv.(StorageServiceServer).InitiateUploadDocument(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: StorageService_UploadFile_FullMethodName,
+		FullMethod: StorageService_InitiateUploadDocument_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServiceServer).UploadFile(ctx, req.(*UploadFileRequest))
+		return srv.(StorageServiceServer).InitiateUploadDocument(ctx, req.(*InitiateUploadDocumentRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _StorageService_ListFilesByUserId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListFilesByUserIdRequest)
+func _StorageService_CompleteUploadDocument_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteUploadDocumentRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(StorageServiceServer).ListFilesByUserId(ctx, in)
+		return srv.(StorageServiceServer).CompleteUploadDocument(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: StorageService_ListFilesByUserId_FullMethodName,
+		FullMethod: StorageService_CompleteUploadDocument_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServiceServer).ListFilesByUserId(ctx, req.(*ListFilesByUserIdRequest))
+		return srv.(StorageServiceServer).CompleteUploadDocument(ctx, req.(*CompleteUploadDocumentRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -150,12 +150,12 @@ var StorageService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*StorageServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "UploadFile",
-			Handler:    _StorageService_UploadFile_Handler,
+			MethodName: "InitiateUploadDocument",
+			Handler:    _StorageService_InitiateUploadDocument_Handler,
 		},
 		{
-			MethodName: "ListFilesByUserId",
-			Handler:    _StorageService_ListFilesByUserId_Handler,
+			MethodName: "CompleteUploadDocument",
+			Handler:    _StorageService_CompleteUploadDocument_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

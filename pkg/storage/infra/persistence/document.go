@@ -52,11 +52,11 @@ func (r *documentRepository) ListByUserID(ctx context.Context, userID uuid.UUID)
 	}
 	entities := make([]*entity.Document, len(models))
 	for i, model := range models {
-		entity, err := model.ToEntity()
+		toEntity, err := model.ToEntity()
 		if err != nil {
 			return nil, err
 		}
-		entities[i] = entity
+		entities[i] = toEntity
 	}
 	return entities, nil
 }
@@ -64,6 +64,14 @@ func (r *documentRepository) ListByUserID(ctx context.Context, userID uuid.UUID)
 func (r *documentRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.Document, error) {
 	var model DocumentModel
 	if err := r.db.Where("id = ?", id).First(&model).Error; err != nil {
+		return nil, err
+	}
+	return model.ToEntity()
+}
+
+func (r *documentRepository) GetByUserID(ctx context.Context, userID uuid.UUID, fileID uuid.UUID) (*entity.Document, error) {
+	var model DocumentModel
+	if err := r.db.Where("user_id = ? AND id = ?", userID, fileID).First(&model).Error; err != nil {
 		return nil, err
 	}
 	return model.ToEntity()
