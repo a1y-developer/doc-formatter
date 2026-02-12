@@ -32,11 +32,11 @@ func TestNewCmdAuth_RunE_Validation(t *testing.T) {
 func TestNewCmdAuth_RunE_WithFlags(t *testing.T) {
 	cmd := NewCmdAuth()
 
-	cmd.Flags().Set("port", "8080")
-	cmd.Flags().Set("db-host", "localhost")
-	cmd.Flags().Set("db-port", "5432")
-	cmd.Flags().Set("db-name", "test_db")
-	cmd.Flags().Set("db-user", "test_user")
-	cmd.Flags().Set("db-pass", "test_pass")
+	assert.NoError(t, cmd.Flags().Set("port", "8080"))
+	assert.NoError(t, cmd.Flags().Set("db-host", "localhost"))
+	assert.NoError(t, cmd.Flags().Set("db-port", "5432"))
+	assert.NoError(t, cmd.Flags().Set("db-name", "test_db"))
+	assert.NoError(t, cmd.Flags().Set("db-user", "test_user"))
+	assert.NoError(t, cmd.Flags().Set("db-pass", "test_pass"))
 	assert.NotNil(t, cmd.RunE)
 }
