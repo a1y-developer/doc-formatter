@@ -1,3 +1,3 @@
 # A1Y Developer Community Code of Conduct
 
-[Code of Conduct](https://github.com/a1y-developer/.github/blob/main/CLA.md).
+[Code of Conduct](https://github.com/cncf/foundation/blob/main/code-of-conduct.md).
