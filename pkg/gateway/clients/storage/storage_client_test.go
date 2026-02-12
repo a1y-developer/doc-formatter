@@ -125,7 +125,9 @@ func TestNewStorageClientConnectsToServerAndUploads(t *testing.T) {
 	grpcServer := grpc.NewServer()
 	storagepb.RegisterStorageServiceServer(grpcServer, &testStorageServer{})
 
-	go grpcServer.Serve(lis)
+	go func() {
+		_ = grpcServer.Serve(lis)
+	}()
 	t.Cleanup(func() {
 		grpcServer.Stop()
 		_ = lis.Close()

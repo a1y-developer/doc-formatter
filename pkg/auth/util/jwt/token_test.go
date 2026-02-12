@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -202,4 +203,80 @@ func TestNewTokenClaim(t *testing.T) {
 
 	assert.NotNil(t, claim)
 	assert.Equal(t, path, claim.TokenPath)
+}
+
+func TestValidateToken(t *testing.T) {
+	userID := uuid.New()
+	email := "test@example.com"
+	expirationDuration := 15 * time.Minute
+
+	t.Run("Success", func(t *testing.T) {
+		filePath, _ := setupTestPrivateKeyFile(t)
+		tokenClaim := TokenClaim{TokenPath: filePath}
+
+		tokenString, _, err := tokenClaim.GenerateToken(userID, email, expirationDuration)
+		require.NoError(t, err)
+
+		err = tokenClaim.ValidateToken(tokenString)
+		assert.NoError(t, err)
+	})
+
+	t.Run("InvalidToken", func(t *testing.T) {
+		filePath, _ := setupTestPrivateKeyFile(t)
+		tokenClaim := TokenClaim{TokenPath: filePath}
+
+		err := tokenClaim.ValidateToken("invalid.token.string")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "parse token")
+	})
+
+	t.Run("ExpiredToken", func(t *testing.T) {
+		filePath, _ := setupTestPrivateKeyFile(t)
+		tokenClaim := TokenClaim{TokenPath: filePath}
+
+		// Generate an expired token by setting expiration in the past
+		// Note: We can't use GenerateToken directly for this test case because it uses time.Now()
+		// So we construct the token manually similar to GenerateToken but with past expiration
+		privateKey, err := loadRSAPrivateKeyFromFile(filePath)
+		require.NoError(t, err)
+
+		token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+			"sub":   userID.String(),
+			"email": email,
+			"exp":   time.Now().Add(-1 * time.Minute).Unix(), // Expired 1 minute ago
+		})
+
+		tokenString, err := token.SignedString(privateKey)
+		require.NoError(t, err)
+
+		err = tokenClaim.ValidateToken(tokenString)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "token is expired")
+	})
+
+	t.Run("WrongKey", func(t *testing.T) {
+		filePath1, _ := setupTestPrivateKeyFile(t)
+		filePath2, _ := setupTestPrivateKeyFile(t)
+
+		tokenClaim1 := TokenClaim{TokenPath: filePath1}
+		tokenClaim2 := TokenClaim{TokenPath: filePath2} // Has a different key
+
+		tokenString, _, err := tokenClaim1.GenerateToken(userID, email, expirationDuration)
+		require.NoError(t, err)
+
+		// Validate with the wrong key (tokenClaim2 has filePath2)
+		err = tokenClaim2.ValidateToken(tokenString)
+		assert.Error(t, err)
+		// Verification should fail because public key from key2 won't verify signature from key1
+		assert.Contains(t, err.Error(), "crypto/rsa: verification error")
+	})
+
+	t.Run("LoadKeyError", func(t *testing.T) {
+		filePath := "/nonexistent/path/to/key.pem"
+		tokenClaim := TokenClaim{TokenPath: filePath}
+
+		err := tokenClaim.ValidateToken("some.token.string")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "load private key")
+	})
 }

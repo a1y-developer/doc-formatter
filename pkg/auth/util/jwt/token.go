@@ -63,3 +63,32 @@ func (t *TokenClaim) GenerateToken(userID uuid.UUID, email string, expirationDur
 
 	return tokenString, exp, nil
 }
+
+// ValidateToken validates a JWT token string and returns an error if validation fails.
+// Returns nil if the token is valid, otherwise returns a descriptive error.
+func (t *TokenClaim) ValidateToken(tokenString string) error {
+	privateKey, err := loadRSAPrivateKeyFromFile(t.TokenPath)
+	if err != nil {
+		return fmt.Errorf("load private key: %w", err)
+	}
+
+	// Derive public key from private key
+	publicKey := &privateKey.PublicKey
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// Validate the signing method
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return publicKey, nil
+	})
+	if err != nil {
+		return fmt.Errorf("parse token: %w", err)
+	}
+
+	if !token.Valid {
+		return fmt.Errorf("invalid token")
+	}
+
+	return nil
+}
