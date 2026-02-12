@@ -82,7 +82,6 @@ func (t *TokenClaim) ValidateToken(tokenString string) error {
 		}
 		return publicKey, nil
 	})
-
 	if err != nil {
 		return fmt.Errorf("parse token: %w", err)
 	}

@@ -2,7 +2,7 @@ SHELL = /bin/bash
 PWD:=$(shell pwd)
 
 GOLINTER			?= golangci-lint
-GOLINTER_VERSION	?= v1.64.8
+GOLINTER_VERSION	?= v2.6.2
 COVER_FILE			?= coverage.out
 SOURCE_PATHS		?= ./pkg/...
 BUILD_PATH 			?= ./_build/bin
