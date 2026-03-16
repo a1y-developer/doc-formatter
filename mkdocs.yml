@@ -1,0 +1,8 @@
+site_name: doc-formatter
+site_description: Document for doc-formatter
+plugins:
+  - techdocs-core
+nav:
+  - Development: CONTRIBUTING.md
+  - API: api.md
+  - Database: database.md
